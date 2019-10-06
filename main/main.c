@@ -48,9 +48,7 @@ void app_main(void)
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
 
-    uint8_t addr = 0x00;
-
-    while(addr < 0x80)
+    while(1)
     {
         gpio_set_level(BLINK_GPIO, 1);
         vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -58,10 +56,9 @@ void app_main(void)
         vTaskDelay(100 / portTICK_PERIOD_MS);
 
         uint16_t accz;
-        esp_err_t err = i2c_read(addr, 0x3f, &accz, 0);
+        esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x3f, &accz, 2);
 
-        printf("addr = %x, error = %d\n", addr, err);
-        addr++;
+        printf("accz = %d, error = %d\n", accz, err);
     }
 
     i2c_destroy();
