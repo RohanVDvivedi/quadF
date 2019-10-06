@@ -32,6 +32,20 @@ esp_err_t i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, u
 void i2c_destroy();
 void write_values_bldc(unsigned int left_front, unsigned int right_front, unsigned int left_back, unsigned int right_back);
 
+typedef struct IMUdata IMUdata;
+{
+    int16_t accx;
+    int16_t accy;
+    int16_t accz;
+    int16_t temp;
+    int16_t gyrox;
+    int16_t gyroy;
+    int16_t gyroz;
+    int16_t magx;
+    int16_t magy;
+    int16_t magz;
+}
+
 void app_main(void)
 {
     /*
@@ -55,10 +69,21 @@ void app_main(void)
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
 
-        uint16_t accz;
-        esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x3f, &accz, 2);
+        IMUdata data;
+        esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x3b, &data, sizeof(IMUdata));
 
-        printf("accz = %d, error = %d\n", accz, err);
+        printf("error = %d\n", err);
+        printf("ax = %d", data.accx);
+        printf("ay = %d", data.accy);
+        printf("az = %d\n", data.accz);
+
+        printf("gx = %d", data.gyrox);
+        printf("gy = %d", data.gyroy);
+        printf("gz = %d\n", data.gyroz);
+
+        printf("mx = %d", data.magz);
+        printf("my = %d", data.magz);
+        printf("mz = %d\n", data.magz);
     }
 
     i2c_destroy();
