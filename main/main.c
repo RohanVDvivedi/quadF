@@ -26,13 +26,6 @@
 #define LEFT_BACK_MOTOR     25
 #define RIGHT_BACK_MOTOR    26
 
-void mpu_init();
-void i2c_init();
-esp_err_t i2c_read(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_read);
-esp_err_t i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_write);
-void i2c_destroy();
-void write_values_bldc(unsigned int left_front, unsigned int right_front, unsigned int left_back, unsigned int right_back);
-
 typedef struct IMUdata IMUdata;
 struct IMUdata
 {
@@ -48,22 +41,35 @@ struct IMUdata
     int16_t magz;
 };
 
-void alter_byte_order_IMUdata(IMUdata* data)
+typedef struct IMUdatascaled IMUdatascaled;
+struct IMUdatascaled
 {
-    data->accx = (data->accx << 8) | ((data->accx >> 8) & 0x00ff);
-    data->accy = (data->accy << 8) | ((data->accy >> 8) & 0x00ff);
-    data->accz = (data->accz << 8) | ((data->accz >> 8) & 0x00ff);
+    double accx;
+    double accy;
+    double accz;
+    double temp;
+    double gyrox;
+    double gyroy;
+    double gyroz;
+    double magx;
+    double magy;
+    double magz;
+};
 
-    data->temp = (data->temp << 8) | ((data->temp >> 8) & 0x00ff);
+// mpu data
+void imu_init();
+// gets you raw IMUdata after reading from MPU6050
+esp_err_t get_raw_IMUdata(IMUdata* data);
 
-    data->gyrox = (data->gyrox << 8) | ((data->gyrox >> 8) & 0x00ff);
-    data->gyroy = (data->gyroy << 8) | ((data->gyroy >> 8) & 0x00ff);
-    data->gyroz = (data->gyroz << 8) | ((data->gyroz >> 8) & 0x00ff);
 
-    data->magx = (data->magx << 8) | ((data->magx >> 8) & 0x00ff);
-    data->magy = (data->magy << 8) | ((data->magy >> 8) & 0x00ff);
-    data->magz = (data->magz << 8) | ((data->magz >> 8) & 0x00ff);
-}
+// basic i2c functionality, could be similar for most sensors, being user for mpu6050 and will be used for ms5611
+void i2c_init();
+esp_err_t i2c_read(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_read);
+esp_err_t i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_write);
+void i2c_destroy();
+
+// function to write values to bldc motors
+void write_values_bldc(unsigned int left_front, unsigned int right_front, unsigned int left_back, unsigned int right_back);
 
 void app_main(void)
 {
@@ -77,7 +83,7 @@ void app_main(void)
     */
 
     i2c_init();
-    mpu_init();
+    imu_init();
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
@@ -89,17 +95,9 @@ void app_main(void)
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
 
-        uint8_t whoami;
-        esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x75, &whoami, 1);
-
-        printf("whoami = %x\n", whoami);
-        printf("error = %d\n\n", err);
-
         IMUdata data;
-        err = i2c_read(MPU6050_ADDRESS, 0x3b, &data, sizeof(IMUdata));
-        alter_byte_order_IMUdata(&data);
+        get_raw_IMUdata(&data);
 
-        printf("error = %d\n", err);
         printf("ax = %d\t", data.accx);
         printf("ay = %d\t", data.accy);
         printf("az = %d\n", data.accz);
@@ -117,13 +115,36 @@ void app_main(void)
     i2c_destroy();
 }
 
-void mpu_init()
+void imu_init()
 {
     uint8_t data;
 
     // write 0 to pwr_mgmt_1 register to wake it up
     data = 0x00;
     i2c_write(MPU6050_ADDRESS, 0x6b, &data, 1);
+}
+
+esp_err_t get_raw_IMUdata(IMUdata* data)
+{
+    esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x3b, data, sizeof(IMUdata));
+
+    if(err != ESP_OK)
+    {
+        return err;
+    }
+
+    data->accx = (data->accx << 8) | ((data->accx >> 8) & 0x00ff);
+    data->accy = (data->accy << 8) | ((data->accy >> 8) & 0x00ff);
+    data->accz = (data->accz << 8) | ((data->accz >> 8) & 0x00ff);
+    data->temp = (data->temp << 8) | ((data->temp >> 8) & 0x00ff);
+    data->gyrox = (data->gyrox << 8) | ((data->gyrox >> 8) & 0x00ff);
+    data->gyroy = (data->gyroy << 8) | ((data->gyroy >> 8) & 0x00ff);
+    data->gyroz = (data->gyroz << 8) | ((data->gyroz >> 8) & 0x00ff);
+    data->magx = (data->magx << 8) | ((data->magx >> 8) & 0x00ff);
+    data->magy = (data->magy << 8) | ((data->magy >> 8) & 0x00ff);
+    data->magz = (data->magz << 8) | ((data->magz >> 8) & 0x00ff);
+
+    return err;
 }
 
 void i2c_init()
