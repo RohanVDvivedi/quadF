@@ -24,8 +24,9 @@
 #define RIGHT_BACK_MOTOR    26
 
 void i2c_init();
-void i2c_read(uint8_t device_address, unsigned int address, void* buffer, unsigned int bytes_to_read);
-void i2c_write(uint8_t device_address, unsigned int address, void* buffer, unsigned int bytes_to_write);
+void i2c_read(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_read);
+void i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_write);
+void i2c_destroy();
 void write_values_bldc(unsigned int left_front, unsigned int right_front, unsigned int left_back, unsigned int right_back);
 
 void app_main(void)
@@ -43,13 +44,22 @@ void app_main(void)
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
+
     while(1)
     {
         gpio_set_level(BLINK_GPIO, 1);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+        int16_t accz;
+        i2c_read(MPU6050_ADDRESS, 0x3f, &accz, 2);
+
+        printf("accz = %d\n", accz);
+
     }
+
+    i2c_destroy();
 }
 
 void i2c_init()
@@ -66,7 +76,7 @@ void i2c_init()
     return i2c_driver_install(port, conf.mode, 0, 0, 0);
 }
 
-void i2c_read(uint8_t device_address, unsigned int address, void* buffer, unsigned int bytes_to_read)
+void i2c_read(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_read)
 {
     // get a handle on which you want to queue the i2c communiction commands of write and reads
     i2c_cmd_handle_t handle i2c_cmd_link_create();
@@ -75,10 +85,10 @@ void i2c_read(uint8_t device_address, unsigned int address, void* buffer, unsign
         i2c_master_start(handle);
 
             // write address of the device on the bus, last param true signifies we are checking for slave to ack on receive
-            i2c_master_write_byte(cmd, device_address << 1, true);
+            i2c_master_write_byte(cmd, (device_address << 1) | 1, true);
 
             // write address from where you want to start reading, last param true signifies we are checking for slave to ack on receive
-            i2c_master_write( ,true);
+            i2c_master_write_byte(cmd, reg_address,true);
 
             // read data from there, but send NACK at the last byte read, instead of ACK
             i2c_master_read(cmd, buffer, bytes_to_read, I2C_MASTER_LAST_NACK);
@@ -93,7 +103,7 @@ void i2c_read(uint8_t device_address, unsigned int address, void* buffer, unsign
     i2c_cmd_link_delete(handle);
 }
 
-void i2c_write(uint8_t device_address, unsigned int address, void* buffer, unsigned int bytes_to_write)
+void i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_write)
 {
     // get a handle on which you want to queue the i2c communiction commands of write and reads 
     i2c_cmd_handle_t handle i2c_cmd_link_create();
@@ -105,7 +115,7 @@ void i2c_write(uint8_t device_address, unsigned int address, void* buffer, unsig
             i2c_master_write_byte(cmd, device_address << 1, ACK);
 
             // write the address you want to write to,  last param true signifies we are checking for slave to ack on receive
-            i2c_master_write(, true);
+            i2c_master_write_byte(cmd, reg_address, true);
 
             // write the data,  last param true signifies we are checking for slave to ack on receive
             i2c_master_write(handle, buffer, bytes_to_write, true);
