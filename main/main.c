@@ -87,12 +87,15 @@ esp_err_t i2c_read(uint8_t device_address, uint8_t reg_address, void* buffer, un
         i2c_master_start(handle);
 
             // write address of the device on the bus, last param true signifies we are checking for slave to ack on receive
-            i2c_master_write_byte(handle, (device_address << 1), true);
+            i2c_master_write_byte(handle, device_address << 1, true);
 
             if(bytes_to_read > 0)
             {
                 // write address from where you want to start reading, last param true signifies we are checking for slave to ack on receive
                 i2c_master_write_byte(handle, reg_address, true);
+
+                // send start bit from master
+                i2c_master_start(handle);
 
                 // write address of the device on the bus, last param true signifies we are checking for slave to ack on receive
                 i2c_master_write_byte(handle, (device_address << 1) | 1, true);
