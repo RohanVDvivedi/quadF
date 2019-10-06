@@ -4,8 +4,12 @@
 #include "driver/gpio.h"
 #include "sdkconfig.h"
 
+// for pwm for bldcs
 #include "driver/mcpwm.h"
 #include "soc/mcpwm_periph.h"
+
+// for i2c for sensors
+#include "driver/i2c.h"
 
 #define BLINK_GPIO 2
 
@@ -24,8 +28,8 @@
 #define RIGHT_BACK_MOTOR    26
 
 void i2c_init();
-void i2c_read(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_read);
-void i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_write);
+esp_err_t i2c_read(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_read);
+esp_err_t i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_write);
 void i2c_destroy();
 void write_values_bldc(unsigned int left_front, unsigned int right_front, unsigned int left_back, unsigned int right_back);
 
@@ -72,50 +76,52 @@ void i2c_init()
     conf.scl_io_num = I2C_MASTER_SCL_IO;
     conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
     conf.master.clk_speed = 1000000;
-    i2c_param_config(i2c_master_port, &conf);
-    return i2c_driver_install(port, conf.mode, 0, 0, 0);
+    i2c_param_config(port, &conf);
+    i2c_driver_install(port, conf.mode, 0, 0, 0);
 }
 
-void i2c_read(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_read)
+esp_err_t i2c_read(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_read)
 {
     // get a handle on which you want to queue the i2c communiction commands of write and reads
-    i2c_cmd_handle_t handle i2c_cmd_link_create();
+    i2c_cmd_handle_t handle = i2c_cmd_link_create();
 
         // send start bit from master
         i2c_master_start(handle);
 
             // write address of the device on the bus, last param true signifies we are checking for slave to ack on receive
-            i2c_master_write_byte(cmd, (device_address << 1) | 1, true);
+            i2c_master_write_byte(handle, (device_address << 1) | 1, true);
 
             // write address from where you want to start reading, last param true signifies we are checking for slave to ack on receive
-            i2c_master_write_byte(cmd, reg_address,true);
+            i2c_master_write_byte(handle, reg_address,true);
 
             // read data from there, but send NACK at the last byte read, instead of ACK
-            i2c_master_read(cmd, buffer, bytes_to_read, I2C_MASTER_LAST_NACK);
+            i2c_master_read(handle, buffer, bytes_to_read, I2C_MASTER_LAST_NACK);
 
         // stop bit from master
         i2c_master_stop(handle);
 
         // execute the commands
-        i2c_master_cmd_begin(I2C_NUM_0, handle, );
+        esp_err_t error = i2c_master_cmd_begin(I2C_NUM_0, handle, 1000 / portTICK_PERIOD_MS);
 
     // delete the handle once done
     i2c_cmd_link_delete(handle);
+
+    return error;
 }
 
-void i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_write)
+esp_err_t i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_write)
 {
     // get a handle on which you want to queue the i2c communiction commands of write and reads 
-    i2c_cmd_handle_t handle i2c_cmd_link_create();
+    i2c_cmd_handle_t handle = i2c_cmd_link_create();
 
         // send start bit from master
         i2c_master_start(handle);
 
             // write device address on the bus
-            i2c_master_write_byte(cmd, device_address << 1, ACK);
+            i2c_master_write_byte(handle, device_address << 1, true);
 
             // write the address you want to write to,  last param true signifies we are checking for slave to ack on receive
-            i2c_master_write_byte(cmd, reg_address, true);
+            i2c_master_write_byte(handle, reg_address, true);
 
             // write the data,  last param true signifies we are checking for slave to ack on receive
             i2c_master_write(handle, buffer, bytes_to_write, true);
@@ -124,16 +130,18 @@ void i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, unsign
         i2c_master_stop(handle);
 
         // execute the commands
-        i2c_master_cmd_begin(I2C_NUM_0, handle, );
+        esp_err_t error = i2c_master_cmd_begin(I2C_NUM_0, handle, 1000 / portTICK_PERIOD_MS);
 
     // delete the handle once done
     i2c_cmd_link_delete(handle);
+
+    return error;
 }
 
 void i2c_destroy()
 {
     i2c_port_t port = I2C_NUM_0;
-    i2c_driver_destroy(port, I2C_MODE_MASTER, 0, 0, 0);
+    i2c_driver_delete(port);
 }
 
 void write_values_bldc(unsigned int left_front, unsigned int right_front, unsigned int left_back, unsigned int right_back)
