@@ -26,6 +26,14 @@
 #define LEFT_BACK_MOTOR     25
 #define RIGHT_BACK_MOTOR    26
 
+// the pins that are taking input from the channels
+#define CHANNEL_0
+#define CHANNEL_1
+#define CHANNEL_2
+#define CHANNEL_3
+#define CHANNEL_4
+#define CHANNEL_5
+
 typedef struct IMUdata IMUdata;
 struct IMUdata
 {
@@ -73,13 +81,14 @@ void write_values_bldc(unsigned int left_front, unsigned int right_front, unsign
 
 void app_main(void)
 {
-    i2c_init();
-    imu_init();
+    //i2c_init();
+    //imu_init();
     //all_bldc_init();
-
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
+
+    volatile uint16_t channel[6];
 
     do
     {
@@ -88,24 +97,12 @@ void app_main(void)
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
 
-        IMUdata data;
-        get_raw_IMUdata(&data);
 
-        printf("ax = %d\t", data.accx);
-        printf("ay = %d\t", data.accy);
-        printf("az = %d\n", data.accz);
-
-        printf("gx = %d\t", data.gyrox);
-        printf("gy = %d\t", data.gyroy);
-        printf("gz = %d\n", data.gyroz);
-
-        printf("mx = %d\t", data.magz);
-        printf("my = %d\t", data.magz);
-        printf("mz = %d\n\n", data.magz);
+        
     }
     while(1);
 
-    i2c_destroy();
+    //i2c_destroy();
 }
 
 void imu_init()
