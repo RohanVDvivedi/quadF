@@ -27,6 +27,7 @@
 #define RIGHT_BACK_MOTOR    26
 
 // the pins that are taking input from the channels
+#define CHANNEL_COUNT 6
 #define CHANNEL_0
 #define CHANNEL_1
 #define CHANNEL_2
@@ -63,6 +64,10 @@ struct IMUdatascaled
     double magy;
     double magz;
 };
+
+// input channels
+void channels_init();
+void get_channel_values(uint16_t* channel_values);
 
 // mpu data
 void imu_init();
@@ -103,6 +108,38 @@ void app_main(void)
     while(1);
 
     //i2c_destroy();
+    channels_destroy();
+}
+
+volatile uint16_t channel_values_up_new[CHANNEL_COUNT];
+volatile uint16_t channel_values_raw[CHANNEL_COUNT];
+
+void on_up(void* which)
+{
+    channel_values_up_new[((int)((int*)(which)))] = now();
+}
+
+void on_down(void* which)
+{
+    channel_values_raw[((int)((int*)(which)))] = now() - channel_values_up_new[((int)((int*)(which)))];
+}
+
+void channels_init()
+{
+    gpio_install_isr_service();
+}
+
+uint16_t get_channel_value(uint16_t* channel_values)
+{
+    for(int i = 0; i < CHANNEL_COUNT; i++)
+    {
+        channel_values[i] = channel_values_raw[i];
+    }
+}
+
+void channels_destroy()
+{
+    gpio_uninstall_isr_services();
 }
 
 void imu_init()
