@@ -58,7 +58,6 @@ struct IMUdatascaled
 
 // mpu data
 void imu_init();
-// gets you raw IMUdata after reading from MPU6050
 esp_err_t get_raw_IMUdata(IMUdata* data);
 
 
@@ -69,21 +68,15 @@ esp_err_t i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, u
 void i2c_destroy();
 
 // function to write values to bldc motors
+void all_bldc_init();
 void write_values_bldc(unsigned int left_front, unsigned int right_front, unsigned int left_back, unsigned int right_back);
 
 void app_main(void)
 {
-    /*
-    // motor startup and max min configuring 
-    // this is the first call hence the motors will be initalized also to their max values
-    write_values_bldc(1000, 1000, 1000, 1000);
-    vTaskDelay(4000 / portTICK_PERIOD_MS);
-    write_values_bldc(0, 0, 0, 0);
-    vTaskDelay(3000 / portTICK_PERIOD_MS);
-    */
-
     i2c_init();
     imu_init();
+    //all_bldc_init();
+
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
@@ -133,6 +126,7 @@ esp_err_t get_raw_IMUdata(IMUdata* data)
         return err;
     }
 
+    // we have to change the data from network ordr to host order integers
     data->accx = (data->accx << 8) | ((data->accx >> 8) & 0x00ff);
     data->accy = (data->accy << 8) | ((data->accy >> 8) & 0x00ff);
     data->accz = (data->accz << 8) | ((data->accz >> 8) & 0x00ff);
@@ -235,6 +229,17 @@ void i2c_destroy()
 {
     i2c_port_t port = I2C_NUM_1;
     i2c_driver_delete(port);
+}
+
+void all_bldc_init()
+{
+    write_values_bldc(1000, 1000, 1000, 1000);
+
+    vTaskDelay(4000 / portTICK_PERIOD_MS);
+
+    write_values_bldc(0, 0, 0, 0);
+
+    vTaskDelay(3000 / portTICK_PERIOD_MS);
 }
 
 void write_values_bldc(unsigned int left_front, unsigned int right_front, unsigned int left_back, unsigned int right_back)
