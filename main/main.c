@@ -48,6 +48,23 @@ struct IMUdata
     int16_t magz;
 };
 
+void alter_byte_order_IMUdata(IMUdata* data)
+{
+    data->accx = (data->accx << 8) | ((data->accx >> 8) & 0x00ff);
+    data->accy = (data->accy << 8) | ((data->accy >> 8) & 0x00ff);
+    data->accz = (data->accz << 8) | ((data->accz >> 8) & 0x00ff);
+
+    data->temp = (data->temp << 8) | ((data->temp >> 8) & 0x00ff);
+
+    data->gyrox = (data->gyrox << 8) | ((data->gyrox >> 8) & 0x00ff);
+    data->gyroy = (data->gyroy << 8) | ((data->gyroy >> 8) & 0x00ff);
+    data->gyroz = (data->gyroz << 8) | ((data->gyroz >> 8) & 0x00ff);
+
+    data->magx = (data->magx << 8) | ((data->magx >> 8) & 0x00ff);
+    data->magy = (data->magy << 8) | ((data->magy >> 8) & 0x00ff);
+    data->magz = (data->magz << 8) | ((data->magz >> 8) & 0x00ff);
+}
+
 void app_main(void)
 {
     /*
@@ -80,6 +97,7 @@ void app_main(void)
 
         IMUdata data;
         err = i2c_read(MPU6050_ADDRESS, 0x3b, &data, sizeof(IMUdata));
+        alter_byte_order_IMUdata(&data);
 
         printf("error = %d\n", err);
         printf("ax = %d\t", data.accx);
@@ -101,23 +119,11 @@ void app_main(void)
 
 void mpu_init()
 {
-    uint8_t usr_ctrl;
-    esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x6a, &usr_ctrl, 1);
+    uint8_t data;
 
-    printf("usr_ctrl = %x\n", usr_ctrl);
-    printf("error = %d\n\n", err);
-
-    uint8_t pwr_mgmt1;
-    esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x6b, &pwr_mgmt1, 1);
-
-    printf("pwr_mgmt1 = %x\n", pwr_mgmt1);
-    printf("error = %d\n\n", err);
-
-    uint8_t pwr_mgmt2;
-    esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x6c, &pwr_mgmt2, 1);
-
-    printf("pwr_mgmt2 = %x\n", pwr_mgmt2);
-    printf("error = %d\n\n", err);
+    // write 0 to pwr_mgmt_1 register to wake it up
+    data = 0x00;
+    i2c_write(MPU6050_ADDRESS, 0x6b, &data, 1);
 }
 
 void i2c_init()
