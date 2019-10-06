@@ -26,6 +26,7 @@
 #define LEFT_BACK_MOTOR     25
 #define RIGHT_BACK_MOTOR    26
 
+void mpu_init();
 void i2c_init();
 esp_err_t i2c_read(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_read);
 esp_err_t i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_write);
@@ -59,35 +60,64 @@ void app_main(void)
     */
 
     i2c_init();
+    mpu_init();
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
 
-    while(1)
+    do
     {
         gpio_set_level(BLINK_GPIO, 1);
         vTaskDelay(100 / portTICK_PERIOD_MS);
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
 
+        uint8_t whoami;
+        esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x75, &whoami, 1);
+
+        printf("whoami = %x\n", whoami);
+        printf("error = %d\n\n", err);
+
         IMUdata data;
-        esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x3b, &data, sizeof(IMUdata));
+        err = i2c_read(MPU6050_ADDRESS, 0x3b, &data, sizeof(IMUdata));
 
         printf("error = %d\n", err);
-        printf("ax = %d", data.accx);
-        printf("ay = %d", data.accy);
+        printf("ax = %d\t", data.accx);
+        printf("ay = %d\t", data.accy);
         printf("az = %d\n", data.accz);
 
-        printf("gx = %d", data.gyrox);
-        printf("gy = %d", data.gyroy);
+        printf("gx = %d\t", data.gyrox);
+        printf("gy = %d\t", data.gyroy);
         printf("gz = %d\n", data.gyroz);
 
-        printf("mx = %d", data.magz);
-        printf("my = %d", data.magz);
-        printf("mz = %d\n", data.magz);
+        printf("mx = %d\t", data.magz);
+        printf("my = %d\t", data.magz);
+        printf("mz = %d\n\n", data.magz);
     }
+    while(1);
 
     i2c_destroy();
+}
+
+void mpu_init()
+{
+    uint8_t usr_ctrl;
+    esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x6a, &usr_ctrl, 1);
+
+    printf("usr_ctrl = %x\n", usr_ctrl);
+    printf("error = %d\n\n", err);
+
+    uint8_t pwr_mgmt1;
+    esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x6b, &pwr_mgmt1, 1);
+
+    printf("pwr_mgmt1 = %x\n", pwr_mgmt1);
+    printf("error = %d\n\n", err);
+
+    uint8_t pwr_mgmt2;
+    esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x6c, &pwr_mgmt2, 1);
+
+    printf("pwr_mgmt2 = %x\n", pwr_mgmt2);
+    printf("error = %d\n\n", err);
 }
 
 void i2c_init()
