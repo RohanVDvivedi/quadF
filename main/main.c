@@ -33,6 +33,7 @@ void i2c_destroy();
 void write_values_bldc(unsigned int left_front, unsigned int right_front, unsigned int left_back, unsigned int right_back);
 
 typedef struct IMUdata IMUdata;
+struct IMUdata
 {
     int16_t accx;
     int16_t accy;
@@ -44,7 +45,7 @@ typedef struct IMUdata IMUdata;
     int16_t magx;
     int16_t magy;
     int16_t magz;
-}
+};
 
 void app_main(void)
 {
