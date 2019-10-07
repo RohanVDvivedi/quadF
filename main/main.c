@@ -88,7 +88,7 @@ void app_main(void)
     //i2c_init();
     //imu_init();
     //all_bldc_init();
-    channels_init();
+    //channels_init();
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
@@ -101,23 +101,11 @@ void app_main(void)
         vTaskDelay(100 / portTICK_PERIOD_MS);
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
-
-        get_channel_values(channel_values);
-        uint64_t now_time;
-        timer_get_counter_value(TIMER_GROUP_0, 0, &now_time);
-
-        printf("at => %llx\t", now_time);
-
-        for(uint8_t i = 0; i < CHANNEL_COUNT; i++)
-        {
-            printf("%u\t", channel_values[i]);
-        }
-        printf("\n");
     }
     while(1);
 
     //i2c_destroy();
-    channels_destroy();
+    //channels_destroy();
 }
 
 const uint16_t          channel_arr             [CHANNEL_COUNT] = CHANNEL_PINS_ARRAY;
@@ -165,11 +153,12 @@ void channels_init()
         gpio_set_intr_type(channel_arr[i], GPIO_PIN_INTR_ANYEDGE);
     }
 
-    gpio_install_isr_service(ESP_INTR_FLAG_EDGE);
+    gpio_install_isr_service(0);
 
     for(uint8_t i = 0; i < CHANNEL_COUNT; i++)
     {
         gpio_isr_handler_add(channel_arr[i], on_channel_edge, &(channel_nos[i]));
+        gpio_intr_enable(channel_arr[i]);
     }
 }
 
