@@ -27,8 +27,8 @@
 #define RIGHT_BACK_MOTOR    26
 
 // the pins that are taking input from the channels, in CHANNEL_PINS_ARRAY[0] = 54 means channel 0 is connected to controller pin 54
-#define CHANNEL_COUNT 6
-#define CHANNEL_PINS_ARRAY []
+#define CHANNEL_COUNT 1
+#define CHANNEL_PINS_ARRAY {54}
 
 typedef struct IMUdata IMUdata;
 struct IMUdata
@@ -63,6 +63,7 @@ struct IMUdatascaled
 // input channels
 void channels_init();
 esp_err_t get_channel_values(uint16_t* channel_values);
+void channels_destroy();
 
 // mpu data
 void imu_init();
@@ -84,11 +85,12 @@ void app_main(void)
     //i2c_init();
     //imu_init();
     //all_bldc_init();
+    channels_init();
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
 
-    volatile uint16_t channel[6];
+    uint16_t channel_values[CHANNEL_COUNT];
 
     do
     {
@@ -98,7 +100,14 @@ void app_main(void)
         vTaskDelay(100 / portTICK_PERIOD_MS);
 
 
-        
+        esp_err_t erro = get_channel_values(channel_values);
+
+        printf("error = %x\n", erro);
+        for(uint8_t i = 0; i < CHANNEL_COUNT; i++)
+        {
+            printf("%u\t", channel_values[i]);
+        }
+        printf("\n");
     }
     while(1);
 
@@ -106,10 +115,10 @@ void app_main(void)
     channels_destroy();
 }
 
-const uint16_t* const channel_arr = CHANNEL_PINS_ARRAY;
-const uint8_t channel_nos[CHANNEL_COUNT];
-volatile uint16_t channel_values_up_new[CHANNEL_COUNT];
-volatile uint16_t channel_values_raw[CHANNEL_COUNT];
+const uint16_t          channel_arr             [CHANNEL_COUNT] = CHANNEL_PINS_ARRAY;
+uint8_t                 channel_nos             [CHANNEL_COUNT];
+volatile uint16_t       channel_values_up_new   [CHANNEL_COUNT];
+volatile uint16_t       channel_values_raw      [CHANNEL_COUNT];
 
 static void on_channel_edge(void* which_channel)
 {
@@ -131,7 +140,7 @@ static void on_channel_edge(void* which_channel)
 void channels_init()
 {
     // set the channel pins direction to input, and to interrupt on any edge
-    for(int i = 0; i < CHANNEL_COUNT; i++)
+    for(uint8_t i = 0; i < CHANNEL_COUNT; i++)
     {
         channel_nos[i] = i;
         gpio_set_direction(channel_arr[i], GPIO_MODE_INPUT);
@@ -140,16 +149,16 @@ void channels_init()
 
     gpio_install_isr_service(ESP_INTR_FLAG_EDGE);
 
-    for(int i = 0; i < CHANNEL_COUNT; i++)
+    for(uint8_t i = 0; i < CHANNEL_COUNT; i++)
     {
         gpio_isr_handler_add(channel_arr[i], on_channel_edge, &(channel_nos[i]));
     }
 }
 
-esp_err_t get_channel_value(uint16_t* channel_values)
+esp_err_t get_channel_values(uint16_t* channel_values)
 {
     esp_err_t err = ESP_OK;
-    for(int i = 0; i < CHANNEL_COUNT; i++)
+    for(uint8_t i = 0; i < CHANNEL_COUNT; i++)
     {
         channel_values[i] = channel_values_raw[i] - 1000;
         if(err != ESP_FAIL && (channel_values[i] > 2500 || channel_values[i] < 1500))
@@ -162,11 +171,11 @@ esp_err_t get_channel_value(uint16_t* channel_values)
 
 void channels_destroy()
 {
-    for(int i = 0; i < CHANNEL_COUNT; i++)
+    for(uint8_t i = 0; i < CHANNEL_COUNT; i++)
     {
         gpio_isr_handler_remove(channel_arr[i]);
     }
-    gpio_uninstall_isr_services();
+    gpio_uninstall_isr_service();
 }
 
 void imu_init()
