@@ -26,14 +26,9 @@
 #define LEFT_BACK_MOTOR     25
 #define RIGHT_BACK_MOTOR    26
 
-// the pins that are taking input from the channels
+// the pins that are taking input from the channels, in CHANNEL_PINS_ARRAY[0] = 54 means channel 0 is connected to controller pin 54
 #define CHANNEL_COUNT 6
-#define CHANNEL_0
-#define CHANNEL_1
-#define CHANNEL_2
-#define CHANNEL_3
-#define CHANNEL_4
-#define CHANNEL_5
+#define CHANNEL_PINS_ARRAY []
 
 typedef struct IMUdata IMUdata;
 struct IMUdata
@@ -67,7 +62,7 @@ struct IMUdatascaled
 
 // input channels
 void channels_init();
-void get_channel_values(uint16_t* channel_values);
+esp_err_t get_channel_values(uint16_t* channel_values);
 
 // mpu data
 void imu_init();
@@ -111,34 +106,66 @@ void app_main(void)
     channels_destroy();
 }
 
+const uint16_t* const channel_arr = CHANNEL_PINS_ARRAY;
+const uint8_t channel_nos[CHANNEL_COUNT];
 volatile uint16_t channel_values_up_new[CHANNEL_COUNT];
 volatile uint16_t channel_values_raw[CHANNEL_COUNT];
 
-void on_up(void* which)
+static void on_channel_edge(void* which_channel)
 {
-    channel_values_up_new[((int)((int*)(which)))] = now();
-}
+    uint8_t channel_no = *((uint8_t*)(which_channel));
+    uint8_t pin_no = channel_arr[channel_no];
 
-void on_down(void* which)
-{
-    channel_values_raw[((int)((int*)(which)))] = now() - channel_values_up_new[((int)((int*)(which)))];
+    // if high, this is a positive edge
+    if(gpio_get_level(pin_no))
+    {
+        channel_values_up_new[channel_no] = now();
+    }
+    // negative edge
+    else
+    {
+        channel_values_raw[channel_no] = now() - channel_values_up_new[channel_no];
+    }
 }
 
 void channels_init()
 {
-    gpio_install_isr_service();
-}
-
-uint16_t get_channel_value(uint16_t* channel_values)
-{
+    // set the channel pins direction to input, and to interrupt on any edge
     for(int i = 0; i < CHANNEL_COUNT; i++)
     {
-        channel_values[i] = channel_values_raw[i];
+        channel_nos[i] = i;
+        gpio_set_direction(channel_arr[i], GPIO_MODE_INPUT);
+        gpio_set_intr_type(channel_arr[i], GPIO_PIN_INTR_ANYEDGE);
     }
+
+    gpio_install_isr_service(ESP_INTR_FLAG_EDGE);
+
+    for(int i = 0; i < CHANNEL_COUNT; i++)
+    {
+        gpio_isr_handler_add(channel_arr[i], on_channel_edge, &(channel_nos[i]));
+    }
+}
+
+esp_err_t get_channel_value(uint16_t* channel_values)
+{
+    esp_err_t err = ESP_OK;
+    for(int i = 0; i < CHANNEL_COUNT; i++)
+    {
+        channel_values[i] = channel_values_raw[i] - 1000;
+        if(err != ESP_FAIL && (channel_values[i] > 2500 || channel_values[i] < 1500))
+        {
+            err = ESP_FAIL;
+        }
+    }
+    return err;
 }
 
 void channels_destroy()
 {
+    for(int i = 0; i < CHANNEL_COUNT; i++)
+    {
+        gpio_isr_handler_remove(channel_arr[i]);
+    }
     gpio_uninstall_isr_services();
 }
 
