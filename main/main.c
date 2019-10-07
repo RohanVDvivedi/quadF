@@ -21,6 +21,7 @@
 
 // i2c addresses, for connected sensors namesly MPU6050 : accl/gyro, HMC5883L : magnetometer and MS5611 : barometer
 #define MPU6050_ADDRESS     0x68
+#define HMC5883_ADDRESS     0x1e
 #define MS5611_ADDRESS      0x77
 
 // motor pins
@@ -36,31 +37,31 @@
 typedef struct IMUdata IMUdata;
 struct IMUdata
 {
-    int16_t accx;
-    int16_t accy;
-    int16_t accz;
+    int16_t acclx;
+    int16_t accly;
+    int16_t acclz;
     int16_t temp;
     int16_t gyrox;
     int16_t gyroy;
     int16_t gyroz;
-    int16_t magx;
-    int16_t magy;
-    int16_t magz;
+    int16_t magnx;
+    int16_t magny;
+    int16_t magnz;
 };
 
 typedef struct IMUdatascaled IMUdatascaled;
 struct IMUdatascaled
 {
-    double accx;
-    double accy;
-    double accz;
+    double acclx;
+    double accly;
+    double acclz;
     double temp;
     double gyrox;
     double gyroy;
     double gyroz;
-    double magx;
-    double magy;
-    double magz;
+    double magnx;
+    double magny;
+    double magnz;
 };
 
 // input channels
@@ -85,15 +86,13 @@ void write_values_bldc(unsigned int left_front, unsigned int right_front, unsign
 
 void app_main(void)
 {
-    //i2c_init();
-    //imu_init();
+    i2c_init();
+    imu_init();
     //all_bldc_init();
     //channels_init();
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
-
-    uint16_t channel_values[CHANNEL_COUNT];
 
     do
     {
@@ -101,10 +100,18 @@ void app_main(void)
         vTaskDelay(100 / portTICK_PERIOD_MS);
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
+
+        IMUdata data;
+        get_raw_IMUdata(&data);
+
+        printf("accl : \t%d \t%d \t%d\n", data.acclx, data.accly, data.acclz);
+        printf("gyro : \t%d \t%d \t%d\n", data.gyrox, data.gyroy, data.gyroz);
+        printf("magn : \t%d \t%d \t%d\n", data.magnx, data.magny, data.magnz);
+        printf("temp : \t%d\n\n", data.temp);
     }
     while(1);
 
-    //i2c_destroy();
+    i2c_destroy();
     //channels_destroy();
 }
 
@@ -193,28 +200,84 @@ void imu_init()
     // write 0 to pwr_mgmt_1 register to wake it up
     data = 0x00;
     i2c_write(MPU6050_ADDRESS, 0x6b, &data, 1);
+
+    // below wries will enable us to talk to HMC5883 sensor
+        // turn on master of i2c, and reset accl and gyro data path and its registers
+        data = 0x01;
+        i2c_write(MPU6050_ADDRESS, 0x6a, &data, 1);
+
+        // turnon i2c bypass mode
+        i2c_write(MPU6050_ADDRESS, 0x37, &data, 1);
+        data = data | (1 << 1);
+        i2c_write(MPU6050_ADDRESS, 0x37, &data, 1);
+    // yay we can now talk to magnetometer
+
+    // acess HMC5883 magnetometer here, and configure them
+    data = 0x78;
+    i2c_write(HMC5883_ADDRESS, 0x01, &data, 1);
+
+    data = 0x20;
+    i2c_write(HMC5883_ADDRESS, 0x02, &data, 1);
+
+    data = 0x00;
+    i2c_write(HMC5883_ADDRESS, 0x03, &data, 1);
+    // magnetometer settings done
+
+
+// by uncommenting the below lines we can start reading manetometer data
+/*
+    // write slave address o with magnetometer's address
+    data = HMC5883_ADDRESS | (1 << 7);
+    i2c_write(MPU6050_ADDRESS, 0x25, &data, 1);
+
+    // write read register number of slave 0
+    data = 0x03;
+    i2c_write(MPU6050_ADDRESS, 0x26, &data, 1);
+
+    // other configurations for slave 0
+    data = 0xa6;
+    i2c_write(MPU6050_ADDRESS, 0x27, &data, 1);
+
+    // turn on master of i2c, and reset accl and gyro data path and its registers
+    data = 0x20;
+    i2c_write(MPU6050_ADDRESS, 0x6a, &data, 1);
+
+    // turnon i2c bypass mode
+    i2c_write(MPU6050_ADDRESS, 0x37, &data, 1);
+    data = data & (~(1 << 1));
+    i2c_write(MPU6050_ADDRESS, 0x37, &data, 1);
+*/
 }
 
 esp_err_t get_raw_IMUdata(IMUdata* data)
 {
-    esp_err_t err = i2c_read(MPU6050_ADDRESS, 0x3b, data, sizeof(IMUdata));
+    esp_err_t err;
 
+    err = i2c_read(MPU6050_ADDRESS, 0x3b, data, 14);
     if(err != ESP_OK)
     {
         return err;
     }
 
     // we have to change the data from network ordr to host order integers
-    data->accx = (data->accx << 8) | ((data->accx >> 8) & 0x00ff);
-    data->accy = (data->accy << 8) | ((data->accy >> 8) & 0x00ff);
-    data->accz = (data->accz << 8) | ((data->accz >> 8) & 0x00ff);
+    data->acclx = (data->acclx << 8) | ((data->acclx >> 8) & 0x00ff);
+    data->accly = (data->accly << 8) | ((data->accly >> 8) & 0x00ff);
+    data->acclz = (data->acclz << 8) | ((data->acclz >> 8) & 0x00ff);
     data->temp = (data->temp << 8) | ((data->temp >> 8) & 0x00ff);
     data->gyrox = (data->gyrox << 8) | ((data->gyrox >> 8) & 0x00ff);
     data->gyroy = (data->gyroy << 8) | ((data->gyroy >> 8) & 0x00ff);
     data->gyroz = (data->gyroz << 8) | ((data->gyroz >> 8) & 0x00ff);
-    data->magx = (data->magx << 8) | ((data->magx >> 8) & 0x00ff);
-    data->magy = (data->magy << 8) | ((data->magy >> 8) & 0x00ff);
-    data->magz = (data->magz << 8) | ((data->magz >> 8) & 0x00ff);
+
+    err = i2c_read(HMC5883_ADDRESS, 0x03, ((void*)data) + 14, 6);
+    if(err != ESP_OK)
+    {
+        return err;
+    }
+
+    // we have to change the data from network ordr to host order integers
+    data->magnx = (data->magnx << 8) | ((data->magnx >> 8) & 0x00ff);
+    data->magny = (data->magny << 8) | ((data->magny >> 8) & 0x00ff);
+    data->magnz = (data->magnz << 8) | ((data->magnz >> 8) & 0x00ff);
 
     return err;
 }
