@@ -11,6 +11,9 @@
 // for i2c for sensors
 #include "driver/i2c.h"
 
+// for channel inputs
+#include "driver/timer.h"
+
 #define BLINK_GPIO 2
 
 #define I2C_MASTER_SCL_IO   22
@@ -117,32 +120,47 @@ void app_main(void)
 
 const uint16_t          channel_arr             [CHANNEL_COUNT] = CHANNEL_PINS_ARRAY;
 uint8_t                 channel_nos             [CHANNEL_COUNT];
-volatile uint16_t       channel_values_up_new   [CHANNEL_COUNT];
-volatile uint16_t       channel_values_raw      [CHANNEL_COUNT];
+volatile uint64_t       channel_values_up_new   [CHANNEL_COUNT];
+volatile uint64_t       channel_values_raw      [CHANNEL_COUNT];
 
 static void on_channel_edge(void* which_channel)
 {
+    uint64_t now_time;
+    esp_err_t err = timer_get_counter_value(TIMER_GROUP_0, 0, &now_time);
+    if(err != 0)
+    {
+        printf("err reading timer %x\n", err);
+    }
     uint8_t channel_no = *((uint8_t*)(which_channel));
     uint8_t pin_no = channel_arr[channel_no];
 
     // if high, this is a positive edge
     if(gpio_get_level(pin_no))
     {
-        channel_values_up_new[channel_no] = now();
+        channel_values_up_new[channel_no] = now_time;
     }
     // negative edge
     else
     {
-        channel_values_raw[channel_no] = now() - channel_values_up_new[channel_no];
+        channel_values_raw[channel_no] = now_time - channel_values_up_new[channel_no];
     }
 }
 
 void channels_init()
 {
+    timer_config_t conf;
+    conf.counter_en = true;
+    conf.counter_dir = TIMER_COUNT_UP;
+    conf.divider = 80;
+    timer_init(TIMER_GROUP_0, 0, &conf);
+    timer_start(TIMER_GROUP_0, 0);
+
     // set the channel pins direction to input, and to interrupt on any edge
     for(uint8_t i = 0; i < CHANNEL_COUNT; i++)
     {
         channel_nos[i] = i;
+        channel_values_up_new[i] = 0;
+        channel_values_raw[i] = 0xffffffffffffffff;
         gpio_set_direction(channel_arr[i], GPIO_MODE_INPUT);
         gpio_set_intr_type(channel_arr[i], GPIO_PIN_INTR_ANYEDGE);
     }
