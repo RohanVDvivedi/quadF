@@ -31,7 +31,7 @@
 
 // the pins that are taking input from the channels, in CHANNEL_PINS_ARRAY[0] = 54 means channel 0 is connected to controller pin 54
 #define CHANNEL_COUNT 1
-#define CHANNEL_PINS_ARRAY {54}
+#define CHANNEL_PINS_ARRAY {34}
 
 typedef struct IMUdata IMUdata;
 struct IMUdata
@@ -102,6 +102,9 @@ void app_main(void)
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
 
+        uint64_t now_time;
+        timer_get_counter_value(TIMER_GROUP_0, 0, &now_time);
+        printf("%llu\n", now_time);
 
         esp_err_t erro = get_channel_values(channel_values);
 
@@ -126,11 +129,8 @@ volatile uint64_t       channel_values_raw      [CHANNEL_COUNT];
 static void on_channel_edge(void* which_channel)
 {
     uint64_t now_time;
-    esp_err_t err = timer_get_counter_value(TIMER_GROUP_0, 0, &now_time);
-    if(err != 0)
-    {
-        printf("err reading timer %x\n", err);
-    }
+    timer_get_counter_value(TIMER_GROUP_0, 0, &now_time);
+    printf("%llu\n", now_time);
     uint8_t channel_no = *((uint8_t*)(which_channel));
     uint8_t pin_no = channel_arr[channel_no];
 
@@ -178,8 +178,8 @@ esp_err_t get_channel_values(uint16_t* channel_values)
     esp_err_t err = ESP_OK;
     for(uint8_t i = 0; i < CHANNEL_COUNT; i++)
     {
-        channel_values[i] = channel_values_raw[i] - 1000;
-        if(err != ESP_FAIL && (channel_values[i] > 2500 || channel_values[i] < 1500))
+        channel_values[i] = channel_values_raw[i];
+        if(err != ESP_FAIL && (channel_values[i] > 3000 || channel_values[i] < 500))
         {
             err = ESP_FAIL;
         }
