@@ -100,7 +100,7 @@ void scale_IMUdata(IMUdatascaled* result, IMUdata* data, uint8_t mpu_data, uint8
 
 // barometer data
 void baro_init(Barodata* data);
-esp_err_t request_Barodata(Barodata* data);
+esp_err_t request_Barodata();
 esp_err_t get_scaled_Barodata(Barodata* data);
 
 // basic i2c functionality, could be similar for most sensors, being user for mpu6050 and will be used for ms5611
@@ -119,6 +119,7 @@ void app_main(void)
 {
     i2c_init();
     imu_init();
+    Barodata bdata;baro_init(&bdata);
     //all_bldc_init();
     //channels_init();
 
@@ -136,11 +137,21 @@ void app_main(void)
         IMUdatascaled datas;
         get_raw_IMUdata(&data, 1, 1);
         scale_IMUdata(&datas, &data, 1, 1);
+        get_scaled_Barodata(&bdata);
+
+        printf("C1 : \t%d\n", bdata.C1_SENS_T1);
+        printf("C2 : \t%d\n", bdata.C2_OFF_T1);
+        printf("C3 : \t%d\n", bdata.C3_TCS);
+        printf("C4 : \t%d\n", bdata.C4_TCO);
+        printf("C5 : \t%d\n", bdata.C5_TREF);
+        printf("C6 : \t%d\n\n", bdata.C6_TEMPSENS);
 
         printf("accl : \t%lf \t%lf \t%lf\n", datas.acclx, datas.accly, datas.acclz);
         printf("gyro : \t%lf \t%lf \t%lf\n", datas.gyrox, datas.gyroy, datas.gyroz);
         printf("magn : \t%lf \t%lf \t%lf\n", datas.magnx, datas.magny, datas.magnz);
         printf("temp : \t%lf\n\n", datas.temp);
+        printf("temperature : \t%lf\n", bdata.temperature);
+        printf("abspressure : \t%lf\n\n", bdata.abspressure);
     }
     while(1);
 
@@ -368,54 +379,63 @@ void scale_IMUdata(IMUdatascaled* result, IMUdata* data, uint8_t mpu_data, uint8
 
 void baro_init(Barodata* data)
 {
-    int8_t command;
+    uint8_t command;
+    esp_err_t err;
 
     // sending reset sequence for MS5611 barometer
     command = 0x1e;
-    i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);
 
     // prom read sequence
     command = 0xa0 | (0x01 << 1);
-    i2c_write_raw(MS5611_ADDRESS, &(data->C1_SENS_T1), 2);
+    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    err = i2c_read_raw(MS5611_ADDRESS, &(data->C1_SENS_T1), 2);
 
     // prom read sequence
     command = 0xa0 | (0x02 << 1);
-    i2c_write_raw(MS5611_ADDRESS, &(data->C2_OFF_T1), 2);
+    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    err = i2c_read_raw(MS5611_ADDRESS, &(data->C2_OFF_T1), 2);
 
     // prom read sequence
     command = 0xa0 | (0x03 << 1);
-    i2c_write_raw(MS5611_ADDRESS, &(data->C3_TCS), 2);
+    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    err = i2c_read_raw(MS5611_ADDRESS, &(data->C3_TCS), 2);
 
     // prom read sequence
     command = 0xa0 | (0x04 << 1);
-    i2c_write_raw(MS5611_ADDRESS, &(data->C4_TCO), 2);
+    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    err = i2c_read_raw(MS5611_ADDRESS, &(data->C4_TCO), 2);
 
     // prom read sequence
     command = 0xa0 | (0x05 << 1);
-    i2c_write_raw(MS5611_ADDRESS, &(data->C5_TREF), 2);
+    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    err = i2c_read_raw(MS5611_ADDRESS, &(data->C5_TREF), 2);
 
     // prom read sequence
     command = 0xa0 | (0x06 << 1);
-    i2c_write_raw(MS5611_ADDRESS, &(data->C6_TEMPSENS), 2);
+    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    err = i2c_read_raw(MS5611_ADDRESS, &(data->C6_TEMPSENS), 2);
 }
 
 esp_err_t request_Barodata()
 {
+    uint8_t command;
+
     // temperature conversion start
     command = 0x48;
-    esp_err_t errT = i2c_write_raw(MS5611_ADDRESS, &(data->C6_TEMPSENS), 2);
+    esp_err_t errT = i2c_write_raw(MS5611_ADDRESS, &(command), 2);
 
     // pressure conversion start
     command = 0x00;
-    esp_err_t errP = i2c_write_raw(MS5611_ADDRESS, &(data->C6_TEMPSENS), 2);
+    esp_err_t errP = i2c_write_raw(MS5611_ADDRESS, &(command), 2);
 
     return (errT == ESP_OK && errP == ESP_OK) ? ESP_OK : ESP_FAIL;
 }
 
-esp_err_t get_raw_Barodata(Barodata* data)
+esp_err_t get_scaled_Barodata(Barodata* data)
 {
     // Temperature sensor data
-    esp_err_t errP = i2c_read_raw(MS5611_ADDRESS, &(data->D1), 3);
+    esp_err_t errT = i2c_read_raw(MS5611_ADDRESS, &(data->D1), 3);
     data->D1 = data->D1 >> 8;
 
     // Pressure sensor data
