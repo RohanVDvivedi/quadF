@@ -64,20 +64,51 @@ struct IMUdatascaled
     double magnz;
 };
 
+typedef struct Barodata Barodata;
+struct Barodata
+{
+    uint16_t C1_SENS_T1;
+    uint16_t C2_OFF_T1;
+    uint16_t C3_TCS;
+    uint16_t C4_TCO;
+    uint16_t C5_TREF;
+    uint16_t C6_TEMPSENS;
+
+    uint32_t D1;
+    uint32_t D2;
+
+    int32_t dT;
+    int32_t TEMP;
+
+    int64_t OFF;
+    int64_t SENS;
+    int64_t P;
+
+    double temperature;
+    double abspressure;
+};
+
 // input channels
 void channels_init();
 esp_err_t get_channel_values(uint16_t* channel_values);
 void channels_destroy();
 
-// mpu data
+// imu data
 void imu_init();
 esp_err_t get_raw_IMUdata(IMUdata* data, uint8_t mpu_data, uint8_t hmc_data);
 void scale_IMUdata(IMUdatascaled* result, IMUdata* data, uint8_t mpu_data, uint8_t hmc_data);
+
+// barometer data
+void baro_init(Barodata* data);
+esp_err_t request_Barodata(Barodata* data);
+esp_err_t get_scaled_Barodata(Barodata* data);
 
 // basic i2c functionality, could be similar for most sensors, being user for mpu6050 and will be used for ms5611
 void i2c_init();
 esp_err_t i2c_read(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_read);
 esp_err_t i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, unsigned int bytes_to_write);
+esp_err_t i2c_read_raw(uint8_t device_address, void* buffer, unsigned int bytes_to_read);
+esp_err_t i2c_write_raw(uint8_t device_address, void* buffer, unsigned int bytes_to_write);
 void i2c_destroy();
 
 // function to write values to bldc motors
@@ -317,7 +348,8 @@ void scale_IMUdata(IMUdatascaled* result, IMUdata* data, uint8_t mpu_data, uint8
         result->accly = ((((double)(data->accly)) - offsets.accly) * 19.6) / 32768.0;
         result->acclz = ((((double)(data->acclz)) - offsets.acclz) * 19.6) / 32768.0;
 
-        result->temp  = ((double)(data->temp));
+        // temperature is in degree celcius
+        result->temp  = (((double)(data->temp)) / 340) + 36.53;
 
         // in dps, degrees per second
         result->gyrox = ((((double)(data->gyrox)) - offsets.gyrox) * 250.0) / 32768.0;
@@ -332,6 +364,79 @@ void scale_IMUdata(IMUdatascaled* result, IMUdata* data, uint8_t mpu_data, uint8
         result->magny = ((((double)(data->magny)) - offsets.magny) * 0.92);
         result->magnz = ((((double)(data->magnz)) - offsets.magnz) * 0.92);
     }
+}
+
+void baro_init(Barodata* data)
+{
+    int8_t command;
+
+    // sending reset sequence for MS5611 barometer
+    command = 0x1e;
+    i2c_write_raw(MS5611_ADDRESS, &command, 1);
+
+    // prom read sequence
+    command = 0xa0 | (0x01 << 1);
+    i2c_write_raw(MS5611_ADDRESS, &(data->C1_SENS_T1), 2);
+
+    // prom read sequence
+    command = 0xa0 | (0x02 << 1);
+    i2c_write_raw(MS5611_ADDRESS, &(data->C2_OFF_T1), 2);
+
+    // prom read sequence
+    command = 0xa0 | (0x03 << 1);
+    i2c_write_raw(MS5611_ADDRESS, &(data->C3_TCS), 2);
+
+    // prom read sequence
+    command = 0xa0 | (0x04 << 1);
+    i2c_write_raw(MS5611_ADDRESS, &(data->C4_TCO), 2);
+
+    // prom read sequence
+    command = 0xa0 | (0x05 << 1);
+    i2c_write_raw(MS5611_ADDRESS, &(data->C5_TREF), 2);
+
+    // prom read sequence
+    command = 0xa0 | (0x06 << 1);
+    i2c_write_raw(MS5611_ADDRESS, &(data->C6_TEMPSENS), 2);
+}
+
+esp_err_t request_Barodata()
+{
+    // temperature conversion start
+    command = 0x48;
+    esp_err_t errT = i2c_write_raw(MS5611_ADDRESS, &(data->C6_TEMPSENS), 2);
+
+    // pressure conversion start
+    command = 0x00;
+    esp_err_t errP = i2c_write_raw(MS5611_ADDRESS, &(data->C6_TEMPSENS), 2);
+
+    return (errT == ESP_OK && errP == ESP_OK) ? ESP_OK : ESP_FAIL;
+}
+
+esp_err_t get_raw_Barodata(Barodata* data)
+{
+    // Temperature sensor data
+    esp_err_t errP = i2c_read_raw(MS5611_ADDRESS, &(data->D1), 3);
+    data->D1 = data->D1 >> 8;
+
+    // Pressure sensor data
+    esp_err_t errP = i2c_read_raw(MS5611_ADDRESS, &(data->D2), 3);
+    data->D2 = data->D2 >> 8;
+
+    data->dT = data->D2 - (data->C5_TREF << 8);
+
+    data->TEMP = 2000 + (data->dT * data->C6_TEMPSENS / (((int64_t)1) << 23));
+
+    data->OFF = (data->C2_OFF_T1 * (((int64_t)1) << 16)) + ((data->C4_TCO * data->dT) / (((int64_t)1) << 7));
+
+    data->SENS = (data->C1_SENS_T1 * (((int64_t)1) << 15)) + ( (data->C3_TCS * data->dT) / (((int64_t)1) << 8) );
+
+    data->P = (((data->D1 * data->SENS)/(((int64_t)1) << 21)) - data->OFF) / ( ((int64_t)1) << 15 );
+
+    data->temperature = ((double)(data->TEMP))/100;
+
+    data->temperature = ((double)(data->P))/100;
+
+    return (errT == ESP_OK && errP == ESP_OK) ? ESP_OK : ESP_FAIL;
 }
 
 void i2c_init()
@@ -402,6 +507,64 @@ esp_err_t i2c_write(uint8_t device_address, uint8_t reg_address, void* buffer, u
                 // write the address you want to write to,  last param true signifies we are checking for slave to ack on receive
                 i2c_master_write_byte(handle, reg_address, true);
 
+                // write the data,  last param true signifies we are checking for slave to ack on receive
+                i2c_master_write(handle, buffer, bytes_to_write, true);
+            }
+
+        // stop bit from master
+        i2c_master_stop(handle);
+
+        // execute the commands
+        esp_err_t error = i2c_master_cmd_begin(I2C_NUM_1, handle, 1000 / portTICK_PERIOD_MS);
+
+    // delete the handle once done
+    i2c_cmd_link_delete(handle);
+
+    return error;
+}
+
+esp_err_t i2c_read_raw(uint8_t device_address, void* buffer, unsigned int bytes_to_read)
+{
+    // get a handle on which you want to queue the i2c communiction commands of write and reads
+    i2c_cmd_handle_t handle = i2c_cmd_link_create();
+
+        // send start bit from master
+        i2c_master_start(handle);
+
+            // write address of the device on the bus, last param true signifies we are checking for slave to ack on receive
+            i2c_master_write_byte(handle, (device_address << 1) | 1, true);
+
+            if(bytes_to_read > 0)
+            {
+                // read data from there, but send NACK at the last byte read, instead of ACK
+                i2c_master_read(handle, buffer, bytes_to_read, I2C_MASTER_LAST_NACK);
+            }
+
+        // stop bit from master
+        i2c_master_stop(handle);
+
+        // execute the commands
+        esp_err_t error = i2c_master_cmd_begin(I2C_NUM_1, handle, 1000 / portTICK_PERIOD_MS);
+
+    // delete the handle once done
+    i2c_cmd_link_delete(handle);
+
+    return error;
+}
+
+esp_err_t i2c_write_raw(uint8_t device_address, void* buffer, unsigned int bytes_to_write)
+{
+    // get a handle on which you want to queue the i2c communiction commands of write and reads 
+    i2c_cmd_handle_t handle = i2c_cmd_link_create();
+
+        // send start bit from master
+        i2c_master_start(handle);
+
+            // write device address on the bus
+            i2c_master_write_byte(handle, device_address << 1, true);
+
+            if(bytes_to_write > 0)
+            {
                 // write the data,  last param true signifies we are checking for slave to ack on receive
                 i2c_master_write(handle, buffer, bytes_to_write, true);
             }
