@@ -131,40 +131,30 @@ void app_main(void)
 
     do
     {
-        gpio_set_level(BLINK_GPIO, 1);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-        gpio_set_level(BLINK_GPIO, 0);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-
         IMUdata data;
         IMUdatascaled datas;
         get_raw_IMUdata(&data, 1, 1);
         scale_IMUdata(&datas, &data, 1, 1);
 
+        gpio_set_level(BLINK_GPIO, 1);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        gpio_set_level(BLINK_GPIO, 0);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+
         request_Barodata_abspressure();
-        vTaskDelay(15 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
         get_raw_Barodata_abspressure(&bdata);
         request_Barodata_temperature();
-        vTaskDelay(15 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
         get_raw_Barodata_temperature(&bdata);
         scale_and_compensate_Barodata(&bdata);
-
-        printf("C1 : \t%d\n", bdata.C1_SENS_T1);
-        printf("C2 : \t%d\n", bdata.C2_OFF_T1);
-        printf("C3 : \t%d\n", bdata.C3_TCS);
-        printf("C4 : \t%d\n", bdata.C4_TCO);
-        printf("C5 : \t%d\n", bdata.C5_TREF);
-        printf("C6 : \t%d\n\n", bdata.C6_TEMPSENS);
-
-        printf("D1 : \t%d\n", bdata.D1);
-        printf("D2 : \t%d\n\n", bdata.D2);
 
         printf("accl : \t%lf \t%lf \t%lf\n", datas.acclx, datas.accly, datas.acclz);
         printf("gyro : \t%lf \t%lf \t%lf\n", datas.gyrox, datas.gyroy, datas.gyroz);
         printf("magn : \t%lf \t%lf \t%lf\n", datas.magnx, datas.magny, datas.magnz);
         printf("temp : \t%lf\n\n", datas.temp);
-        printf("temperature : \t%lf\n", bdata.temperature);
-        printf("abspressure : \t%lf\n\n", bdata.abspressure);
+        printf("abspressure : \t%lf\n", bdata.abspressure);
+        printf("temperature : \t%lf\n\n", bdata.temperature);
     }
     while(1);
 
@@ -393,51 +383,59 @@ void scale_IMUdata(IMUdatascaled* result, IMUdata* data, uint8_t mpu_data, uint8
 void baro_init(Barodata* data)
 {
     uint8_t command;
-    esp_err_t err;
 
     // sending reset sequence for MS5611 barometer
     command = 0x1e;
-    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);printf("err = %d\n", err);
+    i2c_write_raw(MS5611_ADDRESS, &command, 1);
 
     // ther is delay required after reset to read prom
-    vTaskDelay(10 / portTICK_PERIOD_MS);
+    vTaskDelay(15 / portTICK_PERIOD_MS);
 
     // prom read sequence
     command = 0xa0 | (0x01 << 1);
-    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);printf("err = %d\n", err);
-    err = i2c_read_raw(MS5611_ADDRESS, &(data->C1_SENS_T1), 2);printf("err = %d\n", err);
+    i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    i2c_read_raw(MS5611_ADDRESS, &(data->C1_SENS_T1), 2);
+    data->C1_SENS_T1 = (data->C1_SENS_T1 << 8) | ((data->C1_SENS_T1 >> 8) & 0x00ff);
 
     // prom read sequence
     command = 0xa0 | (0x02 << 1);
-    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);printf("err = %d\n", err);
-    err = i2c_read_raw(MS5611_ADDRESS, &(data->C2_OFF_T1), 2);printf("err = %d\n", err);
+    i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    i2c_read_raw(MS5611_ADDRESS, &(data->C2_OFF_T1), 2);
+    data->C2_OFF_T1 = (data->C2_OFF_T1 << 8) | ((data->C2_OFF_T1 >> 8) & 0x00ff);
 
     // prom read sequence
     command = 0xa0 | (0x03 << 1);
-    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);printf("err = %d\n", err);
-    err = i2c_read_raw(MS5611_ADDRESS, &(data->C3_TCS), 2);printf("err = %d\n", err);
+    i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    i2c_read_raw(MS5611_ADDRESS, &(data->C3_TCS), 2);
+    data->C3_TCS = (data->C3_TCS << 8) | ((data->C3_TCS >> 8) & 0x00ff);
 
     // prom read sequence
     command = 0xa0 | (0x04 << 1);
-    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);printf("err = %d\n", err);
-    err = i2c_read_raw(MS5611_ADDRESS, &(data->C4_TCO), 2);printf("err = %d\n", err);
+    i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    i2c_read_raw(MS5611_ADDRESS, &(data->C4_TCO), 2);
+    data->C4_TCO= (data->C4_TCO << 8) | ((data->C4_TCO >> 8) & 0x00ff);
 
     // prom read sequence
     command = 0xa0 | (0x05 << 1);
-    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);printf("err = %d\n", err);
-    err = i2c_read_raw(MS5611_ADDRESS, &(data->C5_TREF), 2);printf("err = %d\n", err);
+    i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    i2c_read_raw(MS5611_ADDRESS, &(data->C5_TREF), 2);
+    data->C5_TREF = (data->C5_TREF << 8) | ((data->C5_TREF >> 8) & 0x00ff);
 
     // prom read sequence
     command = 0xa0 | (0x06 << 1);
-    err = i2c_write_raw(MS5611_ADDRESS, &command, 1);printf("err = %d\n", err);
-    err = i2c_read_raw(MS5611_ADDRESS, &(data->C6_TEMPSENS), 2);printf("err = %d\n", err);
+    i2c_write_raw(MS5611_ADDRESS, &command, 1);
+    i2c_read_raw(MS5611_ADDRESS, &(data->C6_TEMPSENS), 2);
+    data->C6_TEMPSENS = (data->C6_TEMPSENS << 8) | ((data->C6_TEMPSENS >> 8) & 0x00ff);
+
+    // ther is delay required after reading prom
+    vTaskDelay(15 / portTICK_PERIOD_MS);
 }
 
 esp_err_t request_Barodata_abspressure()
 {
     // Pressure conversion start
     uint8_t command = 0x48;
-    esp_err_t err = i2c_write_raw(MS5611_ADDRESS, &(command), 1);printf("errPR = %d\n", err);
+    esp_err_t err = i2c_write_raw(MS5611_ADDRESS, &(command), 1);
     return err;
 }
 
@@ -445,7 +443,7 @@ esp_err_t request_Barodata_temperature()
 {
     // Temperature conversion start
     uint8_t command = 0x58;
-    esp_err_t err = i2c_write_raw(MS5611_ADDRESS, &(command), 1);printf("errTR = %d\n", err);
+    esp_err_t err = i2c_write_raw(MS5611_ADDRESS, &(command), 1);
     return err;
 }
 
@@ -454,11 +452,15 @@ esp_err_t get_raw_Barodata_abspressure(Barodata* data)
     // sensor data read command
     uint8_t command = 0x00;
     esp_err_t err;
-    err = i2c_write_raw(MS5611_ADDRESS, &(command), 1);printf("errTG = %d\n", err);
+    err = i2c_write_raw(MS5611_ADDRESS, &(command), 1);
 
-    // place it in pressure
-    err = i2c_read_raw(MS5611_ADDRESS, &(data->D1), 3);printf("errTG = %d\n", err);
-    data->D1 = data->D1 >> 8;
+    if(err == ESP_OK)
+    {
+        // read and place it in pressure D1
+        uint8_t data_read[3];
+        err = i2c_read_raw(MS5611_ADDRESS, data_read, 3);
+        data->D1 = (data_read[0] << 16) | (data_read[1] << 8) | data_read[0];
+    }
     return err;
 }
 
@@ -467,11 +469,15 @@ esp_err_t get_raw_Barodata_temperature(Barodata* data)
     // sensor data read command
     uint8_t command = 0x00;
     esp_err_t err;
-    err = i2c_write_raw(MS5611_ADDRESS, &(command), 1);printf("errPG = %d\n", err);
+    err = i2c_write_raw(MS5611_ADDRESS, &(command), 1);
 
-    // place it in temperature
-    err = i2c_read_raw(MS5611_ADDRESS, &(data->D2), 3);printf("errPG = %d\n", err);
-    data->D2 = data->D2 >> 8;
+    if(err == ESP_OK)
+    {
+        // read and place it in temperature D2
+        uint8_t data_read[3];
+        err = i2c_read_raw(MS5611_ADDRESS, data_read, 3);
+        data->D2 = (data_read[0] << 16) | (data_read[1] << 8) | data_read[0];
+    }
     return err;
 }
 
