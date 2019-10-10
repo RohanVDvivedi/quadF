@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
@@ -86,6 +87,7 @@ struct Barodata
 
     double temperature;
     double abspressure;
+    double altitude;
 };
 
 // input channels
@@ -155,6 +157,7 @@ void app_main(void)
         printf("gyro : \t%lf \t%lf \t%lf\n", datas.gyrox, datas.gyroy, datas.gyroz);
         printf("magn : \t%lf \t%lf \t%lf\n", datas.magnx, datas.magny, datas.magnz);
         printf("temp : \t%lf\n\n", datas.temp);
+        printf("altitude : \t%lf\n", bdata.altitude);
         printf("abspressure : \t%lf\n", bdata.abspressure);
         printf("temperature : \t%lf\n\n", bdata.temperature);
     }
@@ -495,9 +498,14 @@ void scale_and_compensate_Barodata(Barodata* data)
 
     data->P = ((( ((int64_t)(data->D1)) * ((int64_t)(data->SENS)) )/(((int64_t)1) << 21)) - ((int64_t)(data->OFF)) ) / ( ((int64_t)1) << 15 );
 
+    // in degree celcius
     data->temperature = ((double)(data->TEMP))/100;
 
+    // in mbar
     data->abspressure = ((double)(data->P))/100;
+
+    // in meters above sea level
+    data->altitude = ((pow( 10.0, log(data->abspressure / 1013.25) / 5.2558797 ) - 1) * 1000000 * 0.3048)/(-6.8755856);
 }
 
 void i2c_init()
