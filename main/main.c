@@ -136,6 +136,8 @@ void app_main(void)
         get_raw_IMUdata(&data, 1, 1);
         scale_IMUdata(&datas, &data, 1, 1);
 
+        // small report in form of command, I am requiring delat between mpu6050 call and ms5611 sensor calls do not know why
+
         gpio_set_level(BLINK_GPIO, 1);
         vTaskDelay(100 / portTICK_PERIOD_MS);
         gpio_set_level(BLINK_GPIO, 0);
