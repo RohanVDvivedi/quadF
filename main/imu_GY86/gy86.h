@@ -11,8 +11,8 @@
 #define HMC5883_ADDRESS     0x1e
 #define MS5611_ADDRESS      0x77
 
-typedef struct IMUdata IMUdata;
-struct IMUdata
+typedef struct MPUdata MPUdata;
+struct MPUdata
 {
     int16_t acclx;
     int16_t accly;
@@ -21,13 +21,10 @@ struct IMUdata
     int16_t gyrox;
     int16_t gyroy;
     int16_t gyroz;
-    int16_t magnx;
-    int16_t magny;
-    int16_t magnz;
 };
 
-typedef struct IMUdatascaled IMUdatascaled;
-struct IMUdatascaled
+typedef struct MPUdatascaled MPUdatascaled;
+struct MPUdatascaled
 {
     double acclx;
     double accly;
@@ -36,6 +33,19 @@ struct IMUdatascaled
     double gyrox;
     double gyroy;
     double gyroz;
+};
+
+typedef struct HMCdata HMCdata;
+struct HMCdata
+{
+    int16_t magnx;
+    int16_t magny;
+    int16_t magnz;
+};
+
+typedef struct HMCdatascaled HMCdatascaled;
+struct HMCdatascaled
+{
     double magnx;
     double magny;
     double magnz;
@@ -53,31 +63,33 @@ struct Barodata
 
     uint32_t D1;
     uint32_t D2;
+};
 
-    int32_t dT;
-    int32_t TEMP;
-
-    int64_t OFF;
-    int64_t SENS;
-    int64_t P;
-
+typedef struct Barodatascaled Barodatascaled;
+struct Barodatascaled
+{
     double temperature;
     double abspressure;
     double altitude;
 };
 
+// mpu data
+void mpu_init();
+esp_err_t get_raw_MPUdata(MPUdata* data);
+void scale_MPUdata(MPUdatascaled* result, MPUdata* data);
+
 // imu data
-void imu_init();
-esp_err_t get_raw_IMUdata(IMUdata* data, uint8_t mpu_data, uint8_t hmc_data);
-void scale_IMUdata(IMUdatascaled* result, IMUdata* data, uint8_t mpu_data, uint8_t hmc_data);
+void hmc_init();
+esp_err_t get_raw_HMCdata(HMCdata* data);
+void scale_HMCdata(HMCdatascaled* result, HMCdata* data);
 
 // barometer data
 void baro_init(Barodata* data);
 esp_err_t request_Barodata_temperature();
-esp_err_t request_Barodata_abspressure();
 esp_err_t get_raw_Barodata_temperature(Barodata* data);
+esp_err_t request_Barodata_abspressure();
 esp_err_t get_raw_Barodata_abspressure(Barodata* data);
-void scale_and_compensate_Barodata(Barodata* data);
+void scale_and_compensate_Barodata(Barodatascaled* result, Barodata* data);
 
 
 #endif

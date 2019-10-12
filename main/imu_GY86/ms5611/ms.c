@@ -102,25 +102,25 @@ esp_err_t get_raw_Barodata_temperature(Barodata* data)
     return err;
 }
 
-void scale_and_compensate_Barodata(Barodata* data)
+void scale_and_compensate_Barodata(Barodatascaled* result, Barodata* data)
 {   
-    data->dT = ((int64_t)(data->D2)) - ( ((int64_t)(data->C5_TREF)) * (((int64_t)1) << 8) );
+    int64_t dT = ((int64_t)(data->D2)) - ( ((int64_t)(data->C5_TREF)) * (((int64_t)1) << 8) );
 
-    data->TEMP = 2000 + ( ((int64_t)(data->dT)) * ((int64_t)(data->C6_TEMPSENS)) / (((int64_t)1) << 23));
+    int64_t TEMP = 2000 + ( dT * ((int64_t)(data->C6_TEMPSENS)) / (((int64_t)1) << 23));
 
-    data->OFF = ( ((int64_t)(data->C2_OFF_T1)) * (((int64_t)1) << 16) ) + (( ((int64_t)(data->C4_TCO)) * ((int64_t)(data->dT)) ) / (((int64_t)1) << 7));
+    int64_t OFF = ( ((int64_t)(data->C2_OFF_T1)) * (((int64_t)1) << 16) ) + (( ((int64_t)(data->C4_TCO)) * dT ) / (((int64_t)1) << 7));
 
-    data->SENS = ( ((int64_t)(data->C1_SENS_T1)) * (((int64_t)1) << 15) ) + ( ( ((int64_t)(data->C3_TCS)) * ((int64_t)(data->dT)) ) / (((int64_t)1) << 8) );
+    int64_t SENS = ( ((int64_t)(data->C1_SENS_T1)) * (((int64_t)1) << 15) ) + ( ( ((int64_t)(data->C3_TCS)) * dT ) / (((int64_t)1) << 8) );
 
-    data->P = ((( ((int64_t)(data->D1)) * ((int64_t)(data->SENS)) )/(((int64_t)1) << 21)) - ((int64_t)(data->OFF)) ) / ( ((int64_t)1) << 15 );
+    int64_t P = ((( ((int64_t)(data->D1)) * SENS )/(((int64_t)1) << 21)) - OFF ) / ( ((int64_t)1) << 15 );
 
     // in degree celcius
-    data->temperature = ((double)(data->TEMP))/100;
+    result->temperature = ((double)TEMP)/100;
 
     // in mbar
-    data->abspressure = ((double)(data->P))/100;
+    result->abspressure = ((double)P)/100;
 
     // in meters above sea level
-    data->altitude = ((pow( 10.0, log(data->abspressure / 1013.25) / 5.2558797 ) - 1) * 1000000 * 0.3048)/(-6.8755856);
+    result->altitude = ((pow( 10.0, log(result->abspressure / 1013.25) / 5.2558797 ) - 1) * 1000000 * 0.3048)/(-6.8755856);
 }
 

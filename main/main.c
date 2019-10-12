@@ -21,7 +21,9 @@ void app_main(void)
 {
     i2c_init();
 
-    imu_init();
+    mpu_init();
+
+    hmc_init();
 
     Barodata bdata;baro_init(&bdata);
 
@@ -34,10 +36,15 @@ void app_main(void)
 
     do
     {
-        IMUdata data;
-        IMUdatascaled datas;
-        get_raw_IMUdata(&data, 1, 1);
-        scale_IMUdata(&datas, &data, 1, 1);
+        MPUdata mpudata;
+        MPUdatascaled mpudatasc;
+        get_raw_MPUdata(&mpudata);
+        scale_MPUdata(&mpudatasc, &mpudata);
+
+        HMCdata hmcdata;
+        HMCdatascaled hmcdatasc;
+        get_raw_HMCdata(&hmcdata);
+        scale_HMCdata(&hmcdatasc, &hmcdata);
 
         // small report in form of command, I am requiring delat between mpu6050 call and ms5611 sensor calls do not know why
 
@@ -49,18 +56,24 @@ void app_main(void)
         request_Barodata_abspressure();
         vTaskDelay(10 / portTICK_PERIOD_MS);
         get_raw_Barodata_abspressure(&bdata);
+
         request_Barodata_temperature();
         vTaskDelay(10 / portTICK_PERIOD_MS);
         get_raw_Barodata_temperature(&bdata);
-        scale_and_compensate_Barodata(&bdata);
 
-        printf("accl : \t%lf \t%lf \t%lf\n", datas.acclx, datas.accly, datas.acclz);
-        printf("gyro : \t%lf \t%lf \t%lf\n", datas.gyrox, datas.gyroy, datas.gyroz);
-        printf("magn : \t%lf \t%lf \t%lf\n", datas.magnx, datas.magny, datas.magnz);
-        printf("temp : \t%lf\n\n", datas.temp);
-        printf("altitude : \t%lf\n", bdata.altitude);
-        printf("abspressure : \t%lf\n", bdata.abspressure);
-        printf("temperature : \t%lf\n\n", bdata.temperature);
+        Barodatascaled bdatasc;
+
+        scale_and_compensate_Barodata(&bdatasc, &bdata);
+
+        printf("accl : \t%lf \t%lf \t%lf\n", mpudatasc.acclx, mpudatasc.accly, mpudatasc.acclz);
+        printf("temp : \t%lf\n", mpudatasc.temp);
+        printf("gyro : \t%lf \t%lf \t%lf\n\n", mpudatasc.gyrox, mpudatasc.gyroy, mpudatasc.gyroz);
+
+        printf("magn : \t%lf \t%lf \t%lf\n\n", hmcdatasc.magnx, hmcdatasc.magny, hmcdatasc.magnz);
+        
+        printf("altitude : \t%lf\n", bdatasc.altitude);
+        printf("abspressure : \t%lf\n", bdatasc.abspressure);
+        printf("temperature : \t%lf\n\n", bdatasc.temperature);
     }
     while(1);
 
