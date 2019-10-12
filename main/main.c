@@ -3,15 +3,28 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 
+// this is where we get our scaled sensor readings from
+#include<gy86.h>
+
+// this is where we get out rc receivers first 4 channels input data from
+#include<rc_receiver.h>
+
+// this is where we finally write out calculated motor speed values
+#include<bldc.h>
+
 #define BLINK_GPIO 2
 
 void app_main(void)
 {
     i2c_init();
+
     imu_init();
+
     Barodata bdata;baro_init(&bdata);
-    //all_bldc_init();
-    //channels_init();
+
+    all_bldc_init();
+    
+    channels_init();
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
@@ -48,6 +61,7 @@ void app_main(void)
     }
     while(1);
 
+    channels_destroy();
+
     i2c_destroy();
-    //channels_destroy();
 }
