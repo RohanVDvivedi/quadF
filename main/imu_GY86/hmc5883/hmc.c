@@ -32,7 +32,7 @@ esp_err_t get_raw_HMCdata(HMCdata* data)
 {
     esp_err_t err = ESP_OK;
 
-    err = i2c_read(HMC5883_ADDRESS, 0x03, ((void*)data) + 14, 6);
+    err = i2c_read(HMC5883_ADDRESS, 0x03, data, 6);
     if(err != ESP_OK)
     {
         return err;
