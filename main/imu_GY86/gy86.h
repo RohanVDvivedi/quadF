@@ -1,6 +1,11 @@
 #ifndef GY86_H
 #define GY86_H
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+#include<i2c_comm.h>
+
 // i2c addresses, for connected sensors namesly MPU6050 : accl/gyro, HMC5883L : magnetometer and MS5611 : barometer
 #define MPU6050_ADDRESS     0x68
 #define HMC5883_ADDRESS     0x1e

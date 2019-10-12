@@ -1,6 +1,9 @@
 #ifndef BLDC_H
 #define BLDC_H
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 // for pwm for bldcs
 #include "driver/mcpwm.h"
 #include "soc/mcpwm_periph.h"

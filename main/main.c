@@ -3,6 +3,9 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 
+// the i2c comm has to be started hence i2c_comm
+#include<i2c_comm.h>
+
 // this is where we get our scaled sensor readings from
 #include<gy86.h>
 
