@@ -27,15 +27,32 @@ void app_main(void)
 
     Barodata bdata;baro_init(&bdata);
 
-    all_bldc_init();
+    //all_bldc_init();
     
-    channels_init();
+    //channels_init();
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
 
     do
     {
+        //gpio_set_level(BLINK_GPIO, 1);
+        //vTaskDelay(100 / portTICK_PERIOD_MS);
+        //gpio_set_level(BLINK_GPIO, 0);
+        //vTaskDelay(100 / portTICK_PERIOD_MS);
+
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+
+        request_Barodata_abspressure();
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+        get_raw_Barodata_abspressure(&bdata);
+        request_Barodata_temperature();
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+        get_raw_Barodata_temperature(&bdata);
+        printf("D1 = %d, D2 = %d\n\n", bdata.D1, bdata.D2);
+        Barodatascaled bdatasc;
+        scale_and_compensate_Barodata(&bdatasc, &bdata);
+
         MPUdata mpudata;
         MPUdatascaled mpudatasc;
         get_raw_MPUdata(&mpudata);
@@ -45,25 +62,6 @@ void app_main(void)
         HMCdatascaled hmcdatasc;
         get_raw_HMCdata(&hmcdata);
         scale_HMCdata(&hmcdatasc, &hmcdata);
-
-        // small report in form of command, I am requiring delat between mpu6050 call and ms5611 sensor calls do not know why
-
-        gpio_set_level(BLINK_GPIO, 1);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-        gpio_set_level(BLINK_GPIO, 0);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-
-        request_Barodata_abspressure();
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-        get_raw_Barodata_abspressure(&bdata);
-
-        request_Barodata_temperature();
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-        get_raw_Barodata_temperature(&bdata);
-
-        Barodatascaled bdatasc;
-
-        scale_and_compensate_Barodata(&bdatasc, &bdata);
 
         printf("accl : \t%lf \t%lf \t%lf\n", mpudatasc.acclx, mpudatasc.accly, mpudatasc.acclz);
         printf("temp : \t%lf\n", mpudatasc.temp);
@@ -77,7 +75,7 @@ void app_main(void)
     }
     while(1);
 
-    channels_destroy();
+    //channels_destroy();
 
     i2c_destroy();
 }
