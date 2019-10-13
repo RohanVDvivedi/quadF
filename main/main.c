@@ -26,6 +26,8 @@ MPUdatascaled mpudatasc;
 HMCdatascaled hmcdatasc;
 Barodatascaled bdatasc;
 
+void sensor_loop(void* not_required);
+
 void app_main(void)
 {
     //all_bldc_init();
@@ -34,6 +36,9 @@ void app_main(void)
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
+
+    TaskHandle_t sensorLoopHandle = NULL;
+    xTaskCreate(sensor_loop, "SENOR_LOOP", 2048, NULL, configMAX_PRIORITIES - 1, sensorLoopHandle);
 
     do
     {
@@ -56,10 +61,15 @@ void app_main(void)
     }
     while(1);
 
+    if( sensorLoopHandle != NULL )
+    {
+        vTaskDelete(sensorLoopHandle);
+    }
+
     //channels_destroy();
 }
 
-void sensor_loop()
+void sensor_loop(void* not_required)
 {
     milli_timer_init();
     int64_t now_time = get_milli_timer_ticks_count();
