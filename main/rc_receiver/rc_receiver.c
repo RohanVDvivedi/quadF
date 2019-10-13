@@ -7,8 +7,7 @@ static volatile uint64_t       channel_values_raw      [CHANNEL_COUNT];
 
 static void on_channel_edge(void* which_channel)
 {
-    uint64_t now_time;
-    timer_get_counter_value(TIMER_GROUP_0, 0, &now_time);
+    uint64_t now_time = get_milli_timer_ticks_count();
 
     uint8_t channel_no = *((uint8_t*)(which_channel));
     uint8_t pin_no = channel_arr[channel_no];
@@ -27,13 +26,8 @@ static void on_channel_edge(void* which_channel)
 
 void channels_init()
 {
-    // setup  and start a timer, so the channels can themselves monitor their ppm signals
-    timer_config_t conf;
-    conf.counter_en = true;
-    conf.counter_dir = TIMER_COUNT_UP;
-    conf.divider = 80;
-    timer_init(TIMER_GROUP_0, 0, &conf);
-    timer_start(TIMER_GROUP_0, 0);
+    // start the millis timer, if is already not started
+    milli_timer_init();
 
     // set the channel pins direction to input, and to interrupt on any edge
     for(uint8_t i = 0; i < CHANNEL_COUNT; i++)

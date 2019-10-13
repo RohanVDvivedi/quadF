@@ -5,6 +5,8 @@
 #include "driver/gpio.h"
 #include "driver/timer.h"
 
+#include<millitimer.h>
+
 // the pins that are taking input from the channels, in CHANNEL_PINS_ARRAY[0] = 54 means channel 0 is connected to controller pin 54
 #define CHANNEL_COUNT 4
 #define CHANNEL_PINS_ARRAY {34,35,4,5}

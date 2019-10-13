@@ -11,18 +11,6 @@
 #define HMC5883_ADDRESS     0x1e
 #define MS5611_ADDRESS      0x77
 
-typedef struct MPUdata MPUdata;
-struct MPUdata
-{
-    int16_t acclx;
-    int16_t accly;
-    int16_t acclz;
-    int16_t temp;
-    int16_t gyrox;
-    int16_t gyroy;
-    int16_t gyroz;
-};
-
 typedef struct MPUdatascaled MPUdatascaled;
 struct MPUdatascaled
 {
@@ -33,14 +21,6 @@ struct MPUdatascaled
     double gyrox;
     double gyroy;
     double gyroz;
-};
-
-typedef struct HMCdata HMCdata;
-struct HMCdata
-{
-    int16_t magnx;
-    int16_t magny;
-    int16_t magnz;
 };
 
 typedef struct HMCdatascaled HMCdatascaled;
@@ -73,17 +53,25 @@ struct Barodatascaled
     double altitude;
 };
 
-// mpu data
+typedef enum MS5611state MS5611state;
+enum MS5611state
+{
+    INIT,
+    REQUESTED_TEMPERATURE,
+    READ_TEMPERATURE,
+    REQUESTED_PRESSURE,
+    READ_PRESSURE
+};
+
 void mpu_init();
-esp_err_t get_raw_MPUdata(MPUdata* data);
-void scale_MPUdata(MPUdatascaled* result, MPUdata* data);
+esp_err_t get_scaled_MPUdata(MPUdatascaled* result);
 
 // imu data
 void hmc_init();
-esp_err_t get_raw_HMCdata(HMCdata* data);
-void scale_HMCdata(HMCdatascaled* result, HMCdata* data);
+esp_err_t get_scaled_HMCdata(HMCdatascaled* result);
 
 // barometer data
+MS5611state get_current_ms5611_state();
 void baro_init(Barodata* data);
 esp_err_t request_Barodata_temperature();
 esp_err_t get_raw_Barodata_temperature(Barodata* data);

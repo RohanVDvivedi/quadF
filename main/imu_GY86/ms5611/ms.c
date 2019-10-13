@@ -1,6 +1,13 @@
 #include<gy86.h>
 #include<math.h>
 
+static volatile MS5611state current_state;
+
+MS5611state get_current_ms5611_state()
+{
+    return current_state;
+}
+
 void baro_init(Barodata* data)
 {
     uint8_t command;
@@ -50,6 +57,8 @@ void baro_init(Barodata* data)
 
     // ther is delay required after reading prom
     vTaskDelay(15 / portTICK_PERIOD_MS);
+
+    current_state = INIT;
 }
 
 esp_err_t request_Barodata_abspressure()
@@ -57,6 +66,7 @@ esp_err_t request_Barodata_abspressure()
     // Pressure conversion start
     uint8_t command = 0x48;
     esp_err_t err = i2c_write_raw(MS5611_ADDRESS, &(command), 1);
+    current_state = REQUESTED_TEMPERATURE;
     return err;
 }
 
@@ -65,6 +75,7 @@ esp_err_t request_Barodata_temperature()
     // Temperature conversion start
     uint8_t command = 0x58;
     esp_err_t err = i2c_write_raw(MS5611_ADDRESS, &(command), 1);
+    current_state = REQUESTED_PRESSURE;
     return err;
 }
 
@@ -82,6 +93,8 @@ esp_err_t get_raw_Barodata_abspressure(Barodata* data)
         err = i2c_read_raw(MS5611_ADDRESS, data_read, 3);
         data->D1 = (data_read[0] << 16) | (data_read[1] << 8) | data_read[0];
     }
+
+    current_state = READ_PRESSURE;
     return err;
 }
 
@@ -99,6 +112,8 @@ esp_err_t get_raw_Barodata_temperature(Barodata* data)
         err = i2c_read_raw(MS5611_ADDRESS, data_read, 3);
         data->D2 = (data_read[0] << 16) | (data_read[1] << 8) | data_read[0];
     }
+
+    current_state = READ_TEMPERATURE;
     return err;
 }
 
