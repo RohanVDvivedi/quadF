@@ -26,6 +26,9 @@ MPUdatascaled mpudatasc;
 HMCdatascaled hmcdatasc;
 Barodatascaled bdatasc;
 
+static char temp[600];
+static int  tempiter = 0;
+
 void sensor_loop(void* not_required);
 
 void app_main(void)
@@ -47,7 +50,9 @@ void app_main(void)
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
 
-        printf("D1 = %d, D2 = %d\n\n", bdata.D1, bdata.D2);
+        temp[tempiter++] = '\0';
+        printf("%s\n", temp);
+        tempiter = 0;
 
         printf("accl : \t%lf \t%lf \t%lf\n", mpudatasc.acclx, mpudatasc.accly, mpudatasc.acclz);
         printf("temp : \t%lf\n", mpudatasc.temp);
@@ -87,41 +92,44 @@ void sensor_loop(void* not_required)
 
     while(1)
     {
+        if(tempiter < 580 && temp[tempiter-1] != '-'){temp[tempiter++] = '-';}
         now_time = get_milli_timer_ticks_count();
 
         // read mpu every millisecond
-        if(now_time - last_mpu_read_time >= 1)
+        if(now_time - last_mpu_read_time >= 1000)
         {
             get_scaled_MPUdata(&mpudatasc);
             now_time = get_milli_timer_ticks_count();
             last_mpu_read_time = now_time;
+            if(tempiter < 580){temp[tempiter++] = 'm';}
         }
 
         // read hmc every 10 milliseconds
-        if(now_time - last_hmc_read_time >= 10)
+        if(now_time - last_hmc_read_time >= 10000)
         {
             get_scaled_HMCdata(&hmcdatasc);
             now_time = get_milli_timer_ticks_count();
-            last_mpu_read_time = now_time;
+            last_hmc_read_time = now_time;
+            if(tempiter < 580){temp[tempiter++] = 'h';}
         }
 
-        if(now_time - last_ms5_read_time >= 12)
+        if(now_time - last_ms5_read_time >= 12000)
         {
             if(get_current_ms5611_state() == REQUESTED_TEMPERATURE)
             {
                 get_raw_Barodata_temperature(&bdata);
+                scale_and_compensate_Barodata(&bdatasc, &bdata);
                 request_Barodata_abspressure();
-                now_time = get_milli_timer_ticks_count();
-                last_ms5_read_time = now_time;
             }
             else if(get_current_ms5611_state() == REQUESTED_PRESSURE)
             {
                 get_raw_Barodata_abspressure(&bdata);
+                scale_and_compensate_Barodata(&bdatasc, &bdata);
                 request_Barodata_temperature();
-                now_time = get_milli_timer_ticks_count();
-                last_ms5_read_time = now_time;
             }
-            scale_and_compensate_Barodata(&bdatasc, &bdata);
+            now_time = get_milli_timer_ticks_count();
+            last_ms5_read_time = now_time;
+            if(tempiter < 580){temp[tempiter++] = 'b';}
         }
 
         if(get_current_ms5611_state() == INIT)
