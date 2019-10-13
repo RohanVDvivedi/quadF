@@ -38,6 +38,8 @@ void app_main(void)
     TaskHandle_t sensorLoopHandle = NULL;
     xTaskCreate(sensor_loop, "SENOR_LOOP", 2048, NULL, configMAX_PRIORITIES - 1, sensorLoopHandle);
 
+    double alt = -1;
+
     do
     {
         gpio_set_level(BLINK_GPIO, 1);
@@ -52,6 +54,15 @@ void app_main(void)
         printf("magn : \t%lf \t%lf \t%lf\n\n", hmcdatasc.magnx, hmcdatasc.magny, hmcdatasc.magnz);
         
         printf("altitude : \t%lf\n", bdatasc.altitude);
+        if(alt <= 0)
+        {
+            alt = bdatasc.altitude;
+        }
+        else
+        {
+            alt = (alt * 0.995) + (bdatasc.altitude * 0.005);
+        }
+        printf("filtered altitude : \t%lf\n", alt);
         printf("abspressure : \t%lf\n", bdatasc.abspressure);
         printf("temperature : \t%lf\n\n", bdatasc.temperature);
     }
