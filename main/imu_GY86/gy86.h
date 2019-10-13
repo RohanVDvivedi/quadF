@@ -31,20 +31,6 @@ struct HMCdatascaled
     double magnz;
 };
 
-typedef struct Barodata Barodata;
-struct Barodata
-{
-    uint16_t C1_SENS_T1;
-    uint16_t C2_OFF_T1;
-    uint16_t C3_TCS;
-    uint16_t C4_TCO;
-    uint16_t C5_TREF;
-    uint16_t C6_TEMPSENS;
-
-    uint32_t D1;
-    uint32_t D2;
-};
-
 typedef struct Barodatascaled Barodatascaled;
 struct Barodatascaled
 {
@@ -72,12 +58,12 @@ esp_err_t get_scaled_HMCdata(HMCdatascaled* result);
 
 // barometer data
 MS5611state get_current_ms5611_state();
-void baro_init(Barodata* data);
+void baro_init();
 esp_err_t request_Barodata_temperature();
-esp_err_t get_raw_Barodata_temperature(Barodata* data);
+esp_err_t get_raw_Barodata_temperature();
 esp_err_t request_Barodata_abspressure();
-esp_err_t get_raw_Barodata_abspressure(Barodata* data);
-void scale_and_compensate_Barodata(Barodatascaled* result, Barodata* data);
+esp_err_t get_raw_Barodata_abspressure();
+void scale_and_compensate_Barodata(Barodatascaled* result);
 
 
 #endif
