@@ -37,8 +37,8 @@ void to_quaternion(quaternion* destination, quat_raw* source)
 	double magnit = magnitude_vector(&(source->vectr));
 	destination->sc = cosine;
 	destination->xi = (sine * source->vectr.xi) / magnit;
-	destination->yj = (sine * source->vectr.xi) / magnit;
-	destination->zk = (sine * source->vectr.xi) / magnit;
+	destination->yj = (sine * source->vectr.yj) / magnit;
+	destination->zk = (sine * source->vectr.zk) / magnit;
 }
 
 void conjugate(quaternion* destination, quaternion* source)
