@@ -47,4 +47,9 @@ void multiply(quaternion* C, quaternion* A, quaternion* B);
 
 void to_quaternion(quaternion* destination, quat_raw* source);
 
+void conjugate(quaternion* destination, quaternion* source);
+
+// rotates a given vector by a given quaternion
+void rotate_vector(vector* result, quaternion* rotation_quaternion, vector* initial);
+
 #endif
