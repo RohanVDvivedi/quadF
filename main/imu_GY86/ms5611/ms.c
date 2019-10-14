@@ -154,6 +154,6 @@ void scale_and_compensate_Barodata(Barodatascaled* result)
     result->abspressure = ((double)P)/100;
 
     // in meters above sea level
-    result->altitude = ((pow( 10.0, log(result->abspressure / 1013.25) / 5.2558797 ) - 1) * 1000000 * 0.3048)/(-6.8755856);
+    result->altitude = ((pow( 10.0, log10(result->abspressure / 1013.25) / 5.2558797 ) - 1) * 1000000 * 0.3048)/(-6.8755856);
 }
 
