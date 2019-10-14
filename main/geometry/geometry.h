@@ -40,7 +40,10 @@ void cross(vector* C, vector* A, vector* B);
 double dot(vector* A, vector* B);
 
 // get magnitude of the vector
-double magnitude(vector* D);
+double magnitude_vector(vector* D);
+
+// get magnitude of the quaternion
+double magnitude_quaternion(quaternion* D);
 
 // multiply quaternions
 void multiply(quaternion* C, quaternion* A, quaternion* B);

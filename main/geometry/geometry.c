@@ -12,9 +12,14 @@ double dot(vector* A, vector* B)
 	return (A->xi * B->xi) + (A->yj * B->yj) + (A->zk * B->zk);
 }
 
-double magnitude(vector* A)
+double magnitude_vector(vector* A)
 {
 	return sqrt(dot(A, A));
+}
+
+double magnitude_quaternion(quaternion* A)
+{
+	return sqrt((A->sc * A->sc) + (A->xi * A->xi) + (A->yj * A->yj) + (A->zk * A->zk));
 }
 
 void multiply(quaternion* C, quaternion* A, quaternion* B)
@@ -27,20 +32,22 @@ void multiply(quaternion* C, quaternion* A, quaternion* B)
 
 void to_quaternion(quaternion* destination, quat_raw* source)
 {
-	double sine   = sin((((source->theta)*180.0)/M_PI) / 2);
-	double cosine = cos((((source->theta)*180.0)/M_PI) / 2);
+	double sine   = sin((((source->theta)*M_PI)/180.0) / 2);
+	double cosine = cos((((source->theta)*M_PI)/180.0) / 2);
+	double magnit = magnitude_vector(&(source->vectr));
 	destination->sc = cosine;
-	destination->xi = sine * source->vectr.xi;
-	destination->yj = sine * source->vectr.xi;
-	destination->zk = sine * source->vectr.xi;
+	destination->xi = (sine * source->vectr.xi) / magnit;
+	destination->yj = (sine * source->vectr.xi) / magnit;
+	destination->zk = (sine * source->vectr.xi) / magnit;
 }
 
 void conjugate(quaternion* destination, quaternion* source)
 {
-	destination->sc = +(source->sc);
-	destination->xi = -(source->xi);
-	destination->yj = -(source->yj);
-	destination->zk = -(source->zk);
+	double magnit = magnitude_quaternion(source);
+	destination->sc = (+(source->sc)) / magnit;
+	destination->xi = (-(source->xi)) / magnit;
+	destination->yj = (-(source->yj)) / magnit;
+	destination->zk = (-(source->zk)) / magnit;
 }
 
 // F is the final vector we get by rotating I by a quaternion R

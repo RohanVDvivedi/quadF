@@ -12,6 +12,8 @@ struct MPUdata
     int16_t gyroz;
 };
 
+// gyroscope steady state initial values may not be 0
+// while initial accelerometer values will help us get final rotation
 static MPUdatascaled offsets = {.acclx = 0, .accly = 0, .acclz = 0, .temp = 0, .gyrox = 0, .gyroy = 0, .gyroz = 0};
 
 void mpu_init()
@@ -42,7 +44,7 @@ void mpu_init()
         get_scaled_MPUdata(&datasc);
         offsets.acclx += (datasc.acclx/500);
         offsets.accly += (datasc.accly/500);
-        offsets.acclz += ((datasc.acclz-9.8)/500);
+        offsets.acclz += (datasc.acclz/500);
         offsets.gyrox += (datasc.gyrox/500);
         offsets.gyroy += (datasc.gyroy/500);
         offsets.gyroz += (datasc.gyroz/500);
@@ -71,9 +73,9 @@ esp_err_t get_scaled_MPUdata(MPUdatascaled* result)
     data.gyroz = (data.gyroz << 8) | ((data.gyroz >> 8) & 0x00ff);
 
     // in m/s2, meter per second square => sensitivity = +/-2g = +/-19.6
-    result->acclx = ((((double)(data.acclx)) * 19.6) / 32768.0) - offsets.acclx;
-    result->accly = ((((double)(data.accly)) * 19.6) / 32768.0) - offsets.accly;
-    result->acclz = ((((double)(data.acclz)) * 19.6) / 32768.0) - offsets.acclz;
+    result->acclx = ((((double)(data.acclx)) * 19.6) / 32768.0);
+    result->accly = ((((double)(data.accly)) * 19.6) / 32768.0);
+    result->acclz = ((((double)(data.acclz)) * 19.6) / 32768.0);
 
     // temperature is in degree celcius
     result->temp  = (((double)(data.temp)) / 340) + 36.53;
@@ -86,3 +88,23 @@ esp_err_t get_scaled_MPUdata(MPUdatascaled* result)
     return err;
 }
 
+void get_quaternion_from_initial_state_based_on_accl(quaternion* actual, MPUdatascaled* data)
+{
+    vector accl_now;
+    accl_now.xi = data->acclx;
+    accl_now.yj = data->accly;
+    accl_now.zk = data->acclz;
+
+    vector accl_init;
+    accl_init.xi = offsets.acclx;
+    accl_init.yj = offsets.accly;
+    accl_init.zk = offsets.acclz;
+
+    quat_raw raw_quat;
+
+    cross(&(raw_quat.vectr), &accl_init, &accl_now);
+
+    raw_quat.theta = (acos(dot(&accl_init, &accl_now)) * 180) / M_PI;
+
+    to_quaternion(actual, &raw_quat);
+}

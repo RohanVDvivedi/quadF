@@ -8,6 +8,9 @@ struct HMCdata
     int16_t magnz;
 };
 
+// while initial accelerometer values will help us get final rotation
+static HMCdatascaled offsets = {.magnx = 0, .magny = 0, .magnz = 0};
+
 void hmc_init()
 {
     uint8_t data;
@@ -25,6 +28,16 @@ void hmc_init()
 
     // a small delay before we start reading the sensors
     vTaskDelay(20 / portTICK_PERIOD_MS);
+
+    for(uint16_t i = 0; i < 500; i++)
+    {
+        HMCdatascaled datasc;
+        get_scaled_HMCdata(&datasc);
+        offsets.magnx += (datasc.magnx/500);
+        offsets.magny += (datasc.magny/500);
+        offsets.magnz += (datasc.magnz/500);
+        vTaskDelay(14 / portTICK_PERIOD_MS);
+    }
 }
 
 esp_err_t get_scaled_HMCdata(HMCdatascaled* result)
@@ -51,3 +64,23 @@ esp_err_t get_scaled_HMCdata(HMCdatascaled* result)
     return err;
 }
 
+void get_quaternion_from_initial_state_based_on_magn(quaternion* actual, HMCdatascaled* data)
+{
+    vector magn_now;
+    magn_now.xi = data->magnx;
+    magn_now.yj = data->magny;
+    magn_now.zk = data->magnz;
+
+    vector magn_init;
+    magn_init.xi = offsets.magnx;
+    magn_init.yj = offsets.magny;
+    magn_init.zk = offsets.magnz;
+
+    quat_raw raw_quat;
+
+    cross(&(raw_quat.vectr), &magn_init, &magn_now);
+
+    raw_quat.theta = (acos(dot(&magn_init, &magn_now)) * 180) / M_PI;
+
+    to_quaternion(actual, &raw_quat);
+}
