@@ -104,7 +104,7 @@ void get_quaternion_from_initial_state_based_on_accl(quaternion* actual, MPUdata
 
     cross(&(raw_quat.vectr), &accl_init, &accl_now);
 
-    raw_quat.theta = (acos(dot(&accl_init, &accl_now)) * 180) / M_PI;
+    raw_quat.theta = (acos(dot(&accl_init, &accl_now)/(magnitude_vector(&accl_init)*magnitude_vector(&accl_now))) * 180) / M_PI;
 
     to_quaternion(actual, &raw_quat);
 }

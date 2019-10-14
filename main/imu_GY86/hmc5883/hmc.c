@@ -80,7 +80,7 @@ void get_quaternion_from_initial_state_based_on_magn(quaternion* actual, HMCdata
 
     cross(&(raw_quat.vectr), &magn_init, &magn_now);
 
-    raw_quat.theta = (acos(dot(&magn_init, &magn_now)) * 180) / M_PI;
+    raw_quat.theta = (acos(dot(&magn_init, &magn_now)/(magnitude_vector(&magn_init)*magnitude_vector(&magn_now))) * 180) / M_PI;
 
     to_quaternion(actual, &raw_quat);
 }

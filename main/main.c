@@ -24,6 +24,9 @@ MPUdatascaled mpudatasc;
 HMCdatascaled hmcdatasc;
 Barodatascaled bdatasc;
 
+quaternion quat_accl;
+quaternion quat_magn;
+
 void sensor_loop(void* not_required);
 
 void app_main(void)
@@ -52,6 +55,9 @@ void app_main(void)
         printf("gyro : \t%lf \t%lf \t%lf\n\n", mpudatasc.gyrox, mpudatasc.gyroy, mpudatasc.gyroz);
 
         printf("magn : \t%lf \t%lf \t%lf\n\n", hmcdatasc.magnx, hmcdatasc.magny, hmcdatasc.magnz);
+
+        printf("quat_accl : \t%lf \t%lf \t%lf \t%lf\n"  , quat_accl.sc, quat_accl.xi, quat_accl.yj, quat_accl.zk);
+        printf("quat_magn : \t%lf \t%lf \t%lf \t%lf\n\n", quat_magn.sc, quat_magn.xi, quat_magn.yj, quat_magn.zk);
         
         printf("altitude : \t%lf\n", bdatasc.altitude);
         if(alt <= 0)
@@ -100,6 +106,7 @@ void sensor_loop(void* not_required)
         if(now_time - last_mpu_read_time >= 1000)
         {
             get_scaled_MPUdata(&mpudatasc);
+            get_quaternion_from_initial_state_based_on_accl(&quat_accl, &mpudatasc);
             now_time = get_milli_timer_ticks_count();
             last_mpu_read_time = now_time;
         }
@@ -108,6 +115,7 @@ void sensor_loop(void* not_required)
         if(now_time - last_hmc_read_time >= 10000)
         {
             get_scaled_HMCdata(&hmcdatasc);
+            get_quaternion_from_initial_state_based_on_magn(&quat_magn, &hmcdatasc);
             now_time = get_milli_timer_ticks_count();
             last_hmc_read_time = now_time;
         }
