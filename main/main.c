@@ -88,10 +88,10 @@ void sensor_loop(void* not_required)
     i2c_init();
 
     uint64_t last_mpu_read_time = now_time;
-    mpu_init();
+    const MPUdatascaled* mpuOff = mpu_init();
 
     uint64_t last_hmc_read_time = now_time;
-    hmc_init();
+    const HMCdatascaled* hmcOff = hmc_init();
 
     uint64_t last_ms5_read_time = now_time;
     baro_init();

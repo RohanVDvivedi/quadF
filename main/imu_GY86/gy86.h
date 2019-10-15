@@ -44,15 +44,13 @@ enum MS5611state
     READ_PRESSURE
 };
 
-// MPU6050 acclerometer and gyroscope data
-void mpu_init();
+// MPU6050 acclerometer and gyroscope data, returns initial offset values averages over 500 cycles
+const MPUdatascaled* mpu_init();
 esp_err_t get_scaled_MPUdata(MPUdatascaled* result);
-void get_quaternion_from_initial_state_based_on_accl(quaternion* actual, MPUdatascaled* data);
 
-// magnetometer data
-void hmc_init();
+// magnetometer data, returns initial offset values averages over 500 cycles
+const HMCdatascaled* hmc_init();
 esp_err_t get_scaled_HMCdata(HMCdatascaled* result);
-void get_quaternion_from_initial_state_based_on_magn(quaternion* actual, HMCdatascaled* data);
 
 // barometer data
 MS5611state get_current_ms5611_state();

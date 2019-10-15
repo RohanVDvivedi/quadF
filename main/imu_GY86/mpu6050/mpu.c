@@ -16,7 +16,7 @@ struct MPUdata
 // while initial accelerometer values will help us get final rotation
 static MPUdatascaled offsets = {.accl = {.xi = 0.0, .yj = 0.0, .zk = 0.0}, .temp = 0.0, .gyro = {.xi = 0.0, .yj = 0.0, .zk = 0.0}};
 
-void mpu_init()
+const MPUdatascaled* mpu_init()
 {
     uint8_t data;
 
@@ -50,6 +50,8 @@ void mpu_init()
         offsets.gyro.zk += (datasc.gyro.zk/500);
         vTaskDelay(14 / portTICK_PERIOD_MS);
     }
+
+    return &offsets;
 }
 
 esp_err_t get_scaled_MPUdata(MPUdatascaled* result)

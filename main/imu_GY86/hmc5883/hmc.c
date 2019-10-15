@@ -11,7 +11,7 @@ struct HMCdata
 // while initial accelerometer values will help us get final rotation
 static HMCdatascaled offsets = {.magn = {.xi = 0.0, .yj = 0.0, .zk = 0.0}};
 
-void hmc_init()
+const HMCdatascaled* hmc_init()
 {
     uint8_t data;
 
@@ -38,6 +38,8 @@ void hmc_init()
         offsets.magn.zk += (datasc.magn.zk/500);
         vTaskDelay(14 / portTICK_PERIOD_MS);
     }
+
+    return &offsets;
 }
 
 esp_err_t get_scaled_HMCdata(HMCdatascaled* result)
