@@ -9,7 +9,7 @@ struct HMCdata
 };
 
 // while initial accelerometer values will help us get final rotation
-static HMCdatascaled offsets = {.magnx = 0, .magny = 0, .magnz = 0};
+static HMCdatascaled offsets = {.magn = {.xi = 0.0, .yj = 0.0, .zk = 0.0}};
 
 void hmc_init()
 {
@@ -33,9 +33,9 @@ void hmc_init()
     {
         HMCdatascaled datasc;
         get_scaled_HMCdata(&datasc);
-        offsets.magnx += (datasc.magnx/500);
-        offsets.magny += (datasc.magny/500);
-        offsets.magnz += (datasc.magnz/500);
+        offsets.magn.xi += (datasc.magn.xi/500);
+        offsets.magn.yj += (datasc.magn.yj/500);
+        offsets.magn.zk += (datasc.magn.zk/500);
         vTaskDelay(14 / portTICK_PERIOD_MS);
     }
 }
@@ -57,30 +57,9 @@ esp_err_t get_scaled_HMCdata(HMCdatascaled* result)
     data.magnz = (data.magnz << 8) | ((data.magnz >> 8) & 0x00ff);
 
     // in mG, milli Gauss
-    result->magnx = (((double)(data.magnx)) * 0.92);
-    result->magny = (((double)(data.magny)) * 0.92);
-    result->magnz = (((double)(data.magnz)) * 0.92);
+    result->magn.xi = (((double)(data.magnx)) * 0.92);
+    result->magn.yj = (((double)(data.magny)) * 0.92);
+    result->magn.zk = (((double)(data.magnz)) * 0.92);
 
     return err;
-}
-
-void get_quaternion_from_initial_state_based_on_magn(quaternion* actual, HMCdatascaled* data)
-{
-    vector magn_now;
-    magn_now.xi = data->magnx;
-    magn_now.yj = data->magny;
-    magn_now.zk = data->magnz;
-
-    vector magn_init;
-    magn_init.xi = offsets.magnx;
-    magn_init.yj = offsets.magny;
-    magn_init.zk = offsets.magnz;
-
-    quat_raw raw_quat;
-
-    cross(&(raw_quat.vectr), &magn_init, &magn_now);
-
-    raw_quat.theta = (acos(dot(&magn_init, &magn_now)/(magnitude_vector(&magn_init)*magnitude_vector(&magn_now))) * 180) / M_PI;
-
-    to_quaternion(actual, &raw_quat);
 }

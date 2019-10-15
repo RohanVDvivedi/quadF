@@ -15,21 +15,15 @@
 typedef struct MPUdatascaled MPUdatascaled;
 struct MPUdatascaled
 {
-    double acclx;
-    double accly;
-    double acclz;
+    vector accl;
     double temp;
-    double gyrox;
-    double gyroy;
-    double gyroz;
+    vector gyro;
 };
 
 typedef struct HMCdatascaled HMCdatascaled;
 struct HMCdatascaled
 {
-    double magnx;
-    double magny;
-    double magnz;
+    vector magn;
 };
 
 typedef struct Barodatascaled Barodatascaled;
