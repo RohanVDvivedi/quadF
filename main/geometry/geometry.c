@@ -41,13 +41,14 @@ double angle_between_vectors(vector* A, vector* B)
 // C = component of A parallel to B
 void parallel_component(vector* C, vector* A, vector* B)
 {
-	// this step makes C = unit vector in direction of A
-	multiply_scalar(C, A, 1/magnitude_vector(A));
+	// this step makes C = unit vector in direction of B
+	multiply_scalar(C, B, 1/magnitude_vector(B));
 
 	// this is the magnitude of the component of A in direction of B
 	double parallel_component_magnitude = dot(A, B) / magnitude_vector(B);
 
-	multiply_scalar(C, A, parallel_component_magnitude);
+	// multiply magnitude and the direction
+	multiply_scalar(C, C, parallel_component_magnitude);
 }
 
 // C = component of A perpendicular to B
@@ -125,5 +126,29 @@ void rotate_vector(vector* F, quaternion* R, vector* I)
 
 void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* Ai, vector* Bf, vector* Bi)
 {
-	
+	vector A;diff(&A, Af, Ai);
+	vector B;diff(&B, Bf, Bi);
+
+	double ybyz = - ( ( (A.zk * B.xi) - (A.xi * B.zk) ) / ( (A.yj * B.xi) - (A.xi * B.yj) ) );
+	double xbyy = - ( ( (A.yj * B.zk) - (A.zk * B.yj) ) / ( (A.xi * B.zk) - (A.zk * B.xi) ) );
+	double xbyz = - ( ( (A.zk * B.yj) - (A.yj * B.zk) ) / ( (A.xi * B.yj) - (A.yj * B.xi) ) );
+
+	quat_raw raw;
+	raw.vectr.zk = 1 / ( 1 + (ybyz * ybyz) + (xbyz * xbyz) );
+	raw.vectr.yj = (ybyz * ybyz) / (1 + (ybyz * ybyz) * ( 1 + (xbyy * xbyy) ) );
+	raw.vectr.xi = (xbyy * xbyy * xbyz * xbyz) / ( (xbyy * xbyy) +  (xbyz * xbyz) + (xbyy * xbyy * xbyz * xbyz) );
+
+	vector Aip; vector Afp;
+	perpendicular_component(&Aip, Ai, &(raw.vectr));
+	perpendicular_component(&Afp, Af, &(raw.vectr));
+	double angle_by_A = angle_between_vectors(&Afp, &Aip);
+
+	vector Bip; vector Bfp;
+	perpendicular_component(&Bip, Bi, &(raw.vectr));
+	perpendicular_component(&Bfp, Bf, &(raw.vectr));
+	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
+
+	raw.theta = (angle_by_A + angle_by_B)/2;
+
+	to_quaternion(quat, &raw);
 }
