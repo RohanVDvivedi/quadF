@@ -73,4 +73,8 @@ void conjugate(quaternion* destination, quaternion* source);
 // rotates a given vector by a given quaternion
 void rotate_vector(vector* result, quaternion* rotation_quaternion, vector* initial);
 
+// this method returns the quaternion rotation that caused tips of Ai and Bi non collinear vectors
+// of the object, to move to final positions Af and Bf respectively
+void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* Ai, vector* Bf, vector* Bi);
+
 #endif

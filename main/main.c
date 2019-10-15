@@ -112,6 +112,7 @@ void sensor_loop(void* not_required)
         if(now_time - last_hmc_read_time >= 10000)
         {
             get_scaled_HMCdata(&hmcdatasc);
+            get_quaternion_from_vectors_changes(&quat, &(mpudatasc.accl), &(mpuOff->accl), &(hmcdatasc.magn), &(hmcOff->magn));
             now_time = get_milli_timer_ticks_count();
             last_hmc_read_time = now_time;
         }

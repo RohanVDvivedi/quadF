@@ -122,3 +122,8 @@ void rotate_vector(vector* F, quaternion* R, vector* I)
 	F->yj = Ftemp.yj;
 	F->zk = Ftemp.zk;
 }
+
+void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* Ai, vector* Bf, vector* Bi)
+{
+	
+}
