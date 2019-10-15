@@ -147,7 +147,7 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 		raw.vectr.zk = -raw.vectr.zk;
 	}
 
-	//printf("%lf \t%lf \t%lf\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
+	printf("%lf \t%lf \t%lf\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
 
 	vector Aip; vector Afp;
 	perpendicular_component(&Aip, Ai, &(raw.vectr));

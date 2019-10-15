@@ -53,7 +53,7 @@ void app_main(void)
         //printf("temp : \t%lf\n", mpudatasc.temp);
         //printf("gyro : \t%lf \t%lf \t%lf\n\n", mpudatasc.gyro.xi, mpudatasc.gyro.yj, mpudatasc.gyro.zk);
 
-        printf("magn : \t%lf \t%lf \t%lf\n\n", hmcdatasc.magn.xi, hmcdatasc.magn.yj, hmcdatasc.magn.zk);
+        //printf("magn : \t%lf \t%lf \t%lf\n\n", hmcdatasc.magn.xi, hmcdatasc.magn.yj, hmcdatasc.magn.zk);
 
         //printf("quat : \t%lf \t%lf \t%lf \t%lf\n"  , quat.sc, quat.xi, quat.yj, quat.zk);
         
