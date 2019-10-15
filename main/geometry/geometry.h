@@ -33,11 +33,29 @@ struct quat_raw
 	vector vectr;
 };
 
+// C = A + B
+void sum(vector* C, vector* A, vector* B);
+
+// C = A - B
+void diff(vector* C, vector* A, vector* B);
+
+// c = A * sc
+void multiply_scalar(vector* C, vector* A, double sc);
+
 // C = A X B
 void cross(vector* C, vector* A, vector* B);
 
 // A.B
 double dot(vector* A, vector* B);
+
+// angle between vectors in degrees
+double angle_between_vectors(vector* A, vector* B);
+
+// C = component of A parallel to B
+void parallel_component(vector* C, vector* A, vector* B);
+
+// C = component of A perpendicular to B
+void perpendicular_component(vector* C, vector* A, vector* B);
 
 // get magnitude of the vector
 double magnitude_vector(vector* D);

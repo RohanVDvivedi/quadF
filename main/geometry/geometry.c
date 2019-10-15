@@ -1,5 +1,26 @@
 #include<geometry.h>
 
+void sum(vector* C, vector* A, vector* B)
+{
+	C->xi = A->xi + B->xi;
+	C->yj = A->yj + B->yj;
+	C->zk = A->zk + B->zk;
+}
+
+void diff(vector* C, vector* A, vector* B)
+{
+	C->xi = A->xi - B->xi;
+	C->yj = A->yj - B->yj;
+	C->zk = A->zk - B->zk;
+}
+
+void multiply_scalar(vector* C, vector* A, double sc)
+{
+	C->xi = A->xi * sc;
+	C->yj = A->yj * sc;
+	C->zk = A->zk * sc;
+}
+
 void cross(vector* C, vector* A, vector* B)
 {
 	C->xi = (A->yj * B->zk) - (A->zk * B->yj);
@@ -10,6 +31,33 @@ void cross(vector* C, vector* A, vector* B)
 double dot(vector* A, vector* B)
 {
 	return (A->xi * B->xi) + (A->yj * B->yj) + (A->zk * B->zk);
+}
+
+double angle_between_vectors(vector* A, vector* B)
+{
+	return (acos(dot(A, B)/(magnitude_vector(A)*magnitude_vector(B))) * 180) / M_PI;
+}
+
+// C = component of A parallel to B
+void parallel_component(vector* C, vector* A, vector* B)
+{
+	// this step makes C = unit vector in direction of A
+	multiply_scalar(C, A, 1/magnitude_vector(A));
+
+	// this is the magnitude of the component of A in direction of B
+	double parallel_component_magnitude = dot(A, B) / magnitude_vector(B);
+
+	multiply_scalar(C, A, parallel_component_magnitude);
+}
+
+// C = component of A perpendicular to B
+void perpendicular_component(vector* C, vector* A, vector* B)
+{
+	// here we made c parallel componnet of A
+	parallel_component(C, A, B);
+
+	// C = A - component of A parallel to B = component of A perpendiculat to B
+	diff(C, A, C);
 }
 
 double magnitude_vector(vector* A)
