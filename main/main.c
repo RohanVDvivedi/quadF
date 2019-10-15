@@ -38,7 +38,7 @@ void app_main(void)
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
 
     TaskHandle_t sensorLoopHandle = NULL;
-    xTaskCreate(sensor_loop, "SENOR_LOOP", 2048, NULL, configMAX_PRIORITIES - 1, sensorLoopHandle);
+    xTaskCreate(sensor_loop, "SENOR_LOOP", 4096, NULL, configMAX_PRIORITIES - 1, sensorLoopHandle);
 
     double alt = -1;
 
@@ -49,26 +49,26 @@ void app_main(void)
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
 
-        printf("accl : \t%lf \t%lf \t%lf\n", mpudatasc.accl.xi, mpudatasc.accl.yj, mpudatasc.accl.zk);
-        printf("temp : \t%lf\n", mpudatasc.temp);
-        printf("gyro : \t%lf \t%lf \t%lf\n\n", mpudatasc.gyro.xi, mpudatasc.gyro.yj, mpudatasc.gyro.zk);
+        //printf("accl : \t%lf \t%lf \t%lf\n", mpudatasc.accl.xi, mpudatasc.accl.yj, mpudatasc.accl.zk);
+        //printf("temp : \t%lf\n", mpudatasc.temp);
+        //printf("gyro : \t%lf \t%lf \t%lf\n\n", mpudatasc.gyro.xi, mpudatasc.gyro.yj, mpudatasc.gyro.zk);
 
         printf("magn : \t%lf \t%lf \t%lf\n\n", hmcdatasc.magn.xi, hmcdatasc.magn.yj, hmcdatasc.magn.zk);
 
-        printf("quat : \t%lf \t%lf \t%lf \t%lf\n"  , quat.sc, quat.xi, quat.yj, quat.zk);
+        //printf("quat : \t%lf \t%lf \t%lf \t%lf\n"  , quat.sc, quat.xi, quat.yj, quat.zk);
         
-        printf("altitude : \t%lf\n", bdatasc.altitude);
-        if(alt <= 0)
-        {
-            alt = bdatasc.altitude;
-        }
-        else
-        {
-            alt = (alt * 0.995) + (bdatasc.altitude * 0.005);
-        }
-        printf("filtered altitude : \t%lf\n", alt);
-        printf("abspressure : \t%lf\n", bdatasc.abspressure);
-        printf("temperature : \t%lf\n\n", bdatasc.temperature);
+        //printf("altitude : \t%lf\n", bdatasc.altitude);
+        //if(alt <= 0)
+        //{
+        //    alt = bdatasc.altitude;
+        //}
+        //else
+        //{
+        //    alt = (alt * 0.995) + (bdatasc.altitude * 0.005);
+        //}
+        //printf("filtered altitude : \t%lf\n", alt);
+        //printf("abspressure : \t%lf\n", bdatasc.abspressure);
+        //printf("temperature : \t%lf\n\n", bdatasc.temperature);
     }
     while(1);
 

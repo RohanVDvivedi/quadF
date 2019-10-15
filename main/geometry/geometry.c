@@ -123,7 +123,7 @@ void rotate_vector(vector* F, quaternion* R, vector* I)
 	F->yj = Ftemp.yj;
 	F->zk = Ftemp.zk;
 }
-
+#include<stdio.h>
 void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* Ai, vector* Bf, vector* Bi)
 {
 	vector A;diff(&A, Af, Ai);
@@ -134,9 +134,20 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	double xbyz = - ( ( (A.zk * B.yj) - (A.yj * B.zk) ) / ( (A.xi * B.yj) - (A.yj * B.xi) ) );
 
 	quat_raw raw;
-	raw.vectr.zk = 1 / ( 1 + (ybyz * ybyz) + (xbyz * xbyz) );
-	raw.vectr.yj = (ybyz * ybyz) / (1 + (ybyz * ybyz) * ( 1 + (xbyy * xbyy) ) );
-	raw.vectr.xi = (xbyy * xbyy * xbyz * xbyz) / ( (xbyy * xbyy) +  (xbyz * xbyz) + (xbyy * xbyy * xbyz * xbyz) );
+	raw.vectr.zk = sqrt(1.0/(1.0 + (ybyz * ybyz) + (xbyz * xbyz)));
+	raw.vectr.yj = sqrt((ybyz * ybyz) / (1.0 + ((ybyz * ybyz) * (1.0 + (xbyy * xbyy)))));
+	raw.vectr.xi = sqrt((xbyy * xbyy * xbyz * xbyz)/((xbyy * xbyy) + (xbyz * xbyz) + (xbyy * xbyy * xbyz * xbyz)));
+
+	if(xbyy < 0)
+	{
+		raw.vectr.yj = -raw.vectr.yj;
+	}
+	if(xbyz < 0)
+	{
+		raw.vectr.zk = -raw.vectr.zk;
+	}
+
+	//printf("%lf \t%lf \t%lf\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
 
 	vector Aip; vector Afp;
 	perpendicular_component(&Aip, Ai, &(raw.vectr));
@@ -147,6 +158,8 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	perpendicular_component(&Bip, Bi, &(raw.vectr));
 	perpendicular_component(&Bfp, Bf, &(raw.vectr));
 	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
+
+	//printf("%lf \t%lf\n\n", angle_by_A, angle_by_B);
 
 	raw.theta = (angle_by_A + angle_by_B)/2;
 

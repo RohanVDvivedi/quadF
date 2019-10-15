@@ -14,7 +14,11 @@ struct MPUdata
 
 // gyroscope steady state initial values may not be 0
 // while initial accelerometer values will help us get final rotation
-static MPUdatascaled offsets = {.accl = {.xi = 0.0, .yj = 0.0, .zk = 0.0}, .temp = 0.0, .gyro = {.xi = 0.0, .yj = 0.0, .zk = 0.0}};
+static MPUdatascaled offsets = {.accl = {.xi = 0.1, .yj = -0.025, .zk = -0.8}, .temp = 0.0, .gyro = {.xi = 0.0, .yj = 0.0, .zk = 0.0}};
+
+// gyroscope steady state initial values may not be 0
+// while initial accelerometer values will help us get final rotation
+static MPUdatascaled initial = {.accl = {.xi = 0.0, .yj = 0.0, .zk = 0.0}, .temp = 0.0, .gyro = {.xi = 0.0, .yj = 0.0, .zk = 0.0}};
 
 const MPUdatascaled* mpu_init()
 {
@@ -42,16 +46,16 @@ const MPUdatascaled* mpu_init()
     {
         MPUdatascaled datasc;
         get_scaled_MPUdata(&datasc);
-        offsets.accl.xi += (datasc.accl.xi/500);
-        offsets.accl.yj += (datasc.accl.yj/500);
-        offsets.accl.zk += (datasc.accl.zk/500);
-        offsets.gyro.xi += (datasc.gyro.xi/500);
-        offsets.gyro.yj += (datasc.gyro.yj/500);
-        offsets.gyro.zk += (datasc.gyro.zk/500);
+        initial.accl.xi += (datasc.accl.xi/500);
+        initial.accl.yj += (datasc.accl.yj/500);
+        initial.accl.zk += (datasc.accl.zk/500);
+        initial.gyro.xi += (datasc.gyro.xi/500);
+        initial.gyro.yj += (datasc.gyro.yj/500);
+        initial.gyro.zk += (datasc.gyro.zk/500);
         vTaskDelay(14 / portTICK_PERIOD_MS);
     }
 
-    return &offsets;
+    return &initial;
 }
 
 esp_err_t get_scaled_MPUdata(MPUdatascaled* result)
@@ -75,9 +79,9 @@ esp_err_t get_scaled_MPUdata(MPUdatascaled* result)
     data.gyroz = (data.gyroz << 8) | ((data.gyroz >> 8) & 0x00ff);
 
     // in m/s2, meter per second square => sensitivity = +/-2g = +/-19.6
-    result->accl.xi = ((((double)(data.acclx)) * 19.6) / 32768.0);
-    result->accl.yj = ((((double)(data.accly)) * 19.6) / 32768.0);
-    result->accl.zk = ((((double)(data.acclz)) * 19.6) / 32768.0);
+    result->accl.xi = ((((double)(data.acclx)) * 19.6) / 32768.0) - offsets.accl.xi;
+    result->accl.yj = ((((double)(data.accly)) * 19.6) / 32768.0) - offsets.accl.yj;
+    result->accl.zk = ((((double)(data.acclz)) * 19.6) / 32768.0) - offsets.accl.zk;
 
     // temperature is in degree celcius
     result->temp  = (((double)(data.temp)) / 340) + 36.53;
