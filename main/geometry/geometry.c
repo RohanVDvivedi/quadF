@@ -204,13 +204,12 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 		multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_b);
 	}
 
-	printf("axl : %lf\t %lf\t %lf\n\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
+	//printf("axl : %lf\t %lf\t %lf\n\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
 
 	double angle_by_A = angle_between_vectors(&Afp, &Aip);
 	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
 
-	//printf("%lf \t%lf\n\n", angle_AipCrossAfp_raw, angle_BipCrossBfp_raw);
-	//printf("%lf \t%lf\n\n", angle_by_A, angle_by_B);
+	printf("%lf \t%lf\n", angle_by_A, angle_by_B);
 
 	raw.theta = (angle_by_A + angle_by_B)/2;
 

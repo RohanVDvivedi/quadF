@@ -9,7 +9,7 @@ struct HMCdata
 };
 
 // while offsets magnetometer values will help us get final rotation
-static HMCdatascaled offsets = {.magn = {.xi = 81.0, .yj = -129.26, .zk = -35.42}};
+static HMCdatascaled offsets = {.magn = {.xi = 78.0, .yj = -130.26, .zk = -36.42}};
 
 // while initial magnetometer values will help us get final rotation
 static HMCdatascaled initial = {.magn = {.xi = 0.0, .yj = 0.0, .zk = 0.0}};
