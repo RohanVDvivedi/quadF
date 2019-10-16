@@ -35,7 +35,10 @@ double dot(vector* A, vector* B)
 
 double angle_between_vectors(vector* A, vector* B)
 {
-	return (acos(dot(A, B)/(magnitude_vector(A)*magnitude_vector(B))) * 180) / M_PI;
+	double cosine = dot(A, B)/(magnitude_vector(A)*magnitude_vector(B));
+	cosine = (cosine >= 1.0) ? 0.999999 : cosine;
+	cosine = (cosine <= -1.0) ? -0.999999 : cosine;
+	return (acos(cosine) * 180) / M_PI;
 }
 
 // C = component of A parallel to B
@@ -147,19 +150,40 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 		raw.vectr.zk = -raw.vectr.zk;
 	}
 
-	//printf("%lf \t%lf \t%lf\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
-
+	// find vector components perpendicuilar to raw.vectr
 	vector Aip; vector Afp;
 	perpendicular_component(&Aip, Ai, &(raw.vectr));
 	perpendicular_component(&Afp, Af, &(raw.vectr));
-	double angle_by_A = angle_between_vectors(&Afp, &Aip);
-
 	vector Bip; vector Bfp;
 	perpendicular_component(&Bip, Bi, &(raw.vectr));
 	perpendicular_component(&Bfp, Bf, &(raw.vectr));
+
+	// this is the vecotor in same or opposite direction of raw.vectr
+	vector AipCrossAfp;
+	cross(&AipCrossAfp, &Aip, &Afp);
+	double angle_AipCrossAfp_raw = angle_between_vectors(&AipCrossAfp, &(raw.vectr));
+	double raw_vectr_sign_inversion_required_a = angle_AipCrossAfp_raw > 170 ? -1 : 1;
+
+	// this is the vecotor in same or opposite direction of raw.vectr
+	vector BipCrossBfp;
+	cross(&BipCrossBfp, &Bip, &Bfp);
+	double angle_BipCrossBfp_raw = angle_between_vectors(&BipCrossBfp, &(raw.vectr));
+	double raw_vectr_sign_inversion_required_b = angle_BipCrossBfp_raw > 170 ? -1 : 1;
+
+	// only if both the vectors ask to reverse the sign of the raw.vectr we do it
+	if(raw_vectr_sign_inversion_required_a == raw_vectr_sign_inversion_required_b)
+	{
+		multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_a);
+	}
+
+	printf("axl : %lf\t %lf\t %lf\n\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
+
+	double angle_by_A = angle_between_vectors(&Afp, &Aip);
+
 	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
 
-	printf("%lf \t%lf\n\n", angle_by_A, angle_by_B);
+	//printf("%lf \t%lf\n\n", angle_AipCrossAfp_raw, angle_BipCrossBfp_raw);
+	//printf("%lf \t%lf\n\n", angle_by_A, angle_by_B);
 
 	raw.theta = (angle_by_A + angle_by_B)/2;
 
