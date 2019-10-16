@@ -4,8 +4,8 @@ typedef struct HMCdata HMCdata;
 struct HMCdata
 {
     int16_t magnx;
-    int16_t magny;
     int16_t magnz;
+    int16_t magny;
 };
 
 // while offsets magnetometer values will help us get final rotation

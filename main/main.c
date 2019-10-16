@@ -49,11 +49,11 @@ void app_main(void)
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
 
-        //printf("accl : \t%lf \t%lf \t%lf\n", mpudatasc.accl.xi, mpudatasc.accl.yj, mpudatasc.accl.zk);
+        printf("accl : \t%lf \t%lf \t%lf\n", mpudatasc.accl.xi, mpudatasc.accl.yj, mpudatasc.accl.zk);
         //printf("temp : \t%lf\n", mpudatasc.temp);
         //printf("gyro : \t%lf \t%lf \t%lf\n\n", mpudatasc.gyro.xi, mpudatasc.gyro.yj, mpudatasc.gyro.zk);
 
-        //printf("magn : \t%lf \t%lf \t%lf\n\n", hmcdatasc.magn.xi, hmcdatasc.magn.yj, hmcdatasc.magn.zk);
+        printf("magn : \t%lf \t%lf \t%lf\n\n", hmcdatasc.magn.xi, hmcdatasc.magn.yj, hmcdatasc.magn.zk);
 
         //printf("quat : \t%lf \t%lf \t%lf \t%lf\n"  , quat.sc, quat.xi, quat.yj, quat.zk);
         
