@@ -36,9 +36,18 @@ double dot(vector* A, vector* B)
 double angle_between_vectors(vector* A, vector* B)
 {
 	double cosine = dot(A, B)/(magnitude_vector(A)*magnitude_vector(B));
-	//cosine = (cosine >= 1.0) ? 0.999999 : cosine;
-	//cosine = (cosine <= -1.0) ? -0.999999 : cosine;
-	return (acos(cosine) * 180) / M_PI;
+	if(cosine >= 1.0)
+	{
+		return 0;
+	}
+	else if(cosine <= -1.0)
+	{
+		return 180;
+	}
+	else
+	{
+		return (acos(cosine) * 180) / M_PI;
+	}
 }
 
 // C = component of A parallel to B
@@ -66,7 +75,8 @@ void perpendicular_component(vector* C, vector* A, vector* B)
 
 double magnitude_vector(vector* A)
 {
-	return sqrt(dot(A, A));
+	vector temp = *A;
+	return sqrt(dot(A, &temp));
 }
 
 double magnitude_quaternion(quaternion* A)
@@ -173,20 +183,12 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	// the difference betwen the angle between final vetcor and rotation vecotr specifies which
 	// of A or B vecotr to use in finding the final value od anle
 	// closer this is to 0, more the accuracy, by taking the calculation from that vector
-	double angle_raw_vectr_Af_90 = angle_between_vectors(&Af, &(raw.vectr));
-	double angle_raw_vectr_Bf_90 = angle_between_vectors(&Bf, &(raw.vectr));
+	double angle_raw_vectr_Af_90 = angle_between_vectors(Af, &(raw.vectr));
+	double angle_raw_vectr_Bf_90 = angle_between_vectors(Bf, &(raw.vectr));
 	angle_raw_vectr_Af_90 = (angle_raw_vectr_Af_90 > 90) ? (180 - angle_raw_vectr_Af_90) : angle_raw_vectr_Af_90;
 	angle_raw_vectr_Bf_90 = (angle_raw_vectr_Bf_90 > 90) ? (180 - angle_raw_vectr_Bf_90) : angle_raw_vectr_Bf_90;
 	angle_raw_vectr_Af_90 = 90 - angle_raw_vectr_Af_90;
 	angle_raw_vectr_Bf_90 = 90 - angle_raw_vectr_Bf_90; 
-
-	//vector acclu; multiply_scalar(&acclu, Af, 1/magnitude_vector(Af));
-	//printf("accl : %lf\t %lf\t %lf\n", acclu.xi, acclu.yj, acclu.zk);
-	//vector magnu; multiply_scalar(&magnu, Bf, 1/magnitude_vector(Bf));
-	//printf("magn : %lf\t %lf\t %lf\n", magnu.xi, magnu.yj, magnu.zk);
-	//printf("axle : %lf\t %lf\t %lf\n\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
-	//printf("%lf \t%lf\n", angle_between_vectors(&Af, &(raw.vectr)), angle_between_vectors(&Bf, &(raw.vectr)));
-	printf("%lf \t%lf\n", angle_raw_vectr_Af_90, angle_raw_vectr_Bf_90);
 
 	if(raw_vectr_sign_inversion_required_a == raw_vectr_sign_inversion_required_b)
 	{
@@ -202,11 +204,9 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 		multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_b);
 	}
 
-	printf("%lf \t%lf\n", angle_between_vectors(&Af, &(raw.vectr)), angle_between_vectors(&Bf, &(raw.vectr)));
 	printf("axl : %lf\t %lf\t %lf\n\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
 
 	double angle_by_A = angle_between_vectors(&Afp, &Aip);
-
 	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
 
 	//printf("%lf \t%lf\n\n", angle_AipCrossAfp_raw, angle_BipCrossBfp_raw);
