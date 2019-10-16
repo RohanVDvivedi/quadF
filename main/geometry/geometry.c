@@ -204,7 +204,9 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 		multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_b);
 	}
 
-	printf("axl : %lf\t %lf\t %lf\n\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
+	printf("accl : %lf\t %lf\t %lf\n", Af->xi, Af->yj, Af->zk);
+	printf("magn : %lf\t %lf\t %lf\n", Bf->xi, Bf->yj, Bf->zk);
+	printf("axl : %lf\t %lf\t \t\t\t\t %lf\n\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
 
 	double angle_by_A = angle_between_vectors(&Afp, &Aip);
 	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
