@@ -108,8 +108,8 @@ void sensor_loop(void* not_required)
             last_mpu_read_time = now_time;
         }
 
-        // read hmc every 10 milliseconds
-        if(now_time - last_hmc_read_time >= 10000)
+        // read hmc every 11 milliseconds
+        if(now_time - last_hmc_read_time >= 11000)
         {
             get_scaled_HMCdata(&hmcdatasc);
             get_quaternion_from_vectors_changes(&quat, &(mpudatasc.accl), &(mpuOff->accl), &(hmcdatasc.magn), &(hmcOff->magn));
