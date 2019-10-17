@@ -209,7 +209,7 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	double angle_by_A = angle_between_vectors(&Afp, &Aip);
 	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
 
-	printf("%lf \t%lf\n", angle_by_A, angle_by_B);
+	//printf("%lf \t%lf\n", angle_by_A, angle_by_B);
 
 	raw.theta = (angle_by_A + angle_by_B)/2;
 

@@ -40,7 +40,7 @@ void app_main(void)
     TaskHandle_t sensorLoopHandle = NULL;
     xTaskCreate(sensor_loop, "SENOR_LOOP", 4096, NULL, configMAX_PRIORITIES - 1, sensorLoopHandle);
 
-    double alt = -1;
+    //double alt = -1;
 
     do
     {
@@ -96,6 +96,12 @@ void sensor_loop(void* not_required)
     uint64_t last_ms5_read_time = now_time;
     baro_init();
 
+    // initialize quaternions to 0 rotation 1 0 0 0
+    // gyroscope and accelerometer quaternion fusion
+    quaternion gyro_accl = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0};
+    // accelerometer and magnetometer quaternion fusion
+    quaternion accl_magn = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0};
+
     while(1)
     {
         now_time = get_milli_timer_ticks_count();
@@ -105,6 +111,19 @@ void sensor_loop(void* not_required)
         {
             get_scaled_MPUdata(&mpudatasc);
             now_time = get_milli_timer_ticks_count();
+            quat_raw quat_raw_change;
+            get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &gyro_accl, &(mpudatasc.gyro), ((double)(now_time - last_mpu_read_time))/1000000);
+            fuse_raw_quaternion_change_with_accelerometer(&quat_raw_change, &gyro_accl, &(mpudatasc.accl));
+            quaternion quat_change;
+            to_quaternion(&quat_change, &quat_raw_change);
+            quaternion final_quat;
+            multiply(&final_quat, &quat_change, &gyro_accl);
+            gyro_accl = final_quat;
+
+            vector temp; temp.xi = gyro_accl.xi; temp.yj = gyro_accl.yj; temp.zk = gyro_accl.zk; double mag = magnitude_vector(&temp); double anglef = 2 * (acos(gyro_accl.sc) * 180 / M_PI);
+
+            printf("fq => %lf \t %lf \t %lf \t\t %lf\n\n", temp.xi, temp.yj, temp.zk, anglef);
+            now_time = get_milli_timer_ticks_count();
             last_mpu_read_time = now_time;
         }
 
@@ -112,7 +131,7 @@ void sensor_loop(void* not_required)
         if(now_time - last_hmc_read_time >= 11000)
         {
             get_scaled_HMCdata(&hmcdatasc);
-            get_quaternion_from_vectors_changes(&quat, &(mpudatasc.accl), &(mpuOff->accl), &(hmcdatasc.magn), &(hmcOff->magn));
+            get_quaternion_from_vectors_changes(&accl_magn, &(mpudatasc.accl), &(mpuOff->accl), &(hmcdatasc.magn), &(hmcOff->magn));
             now_time = get_milli_timer_ticks_count();
             last_hmc_read_time = now_time;
         }

@@ -48,6 +48,9 @@ enum MS5611state
 const MPUdatascaled* mpu_init();
 esp_err_t get_scaled_MPUdata(MPUdatascaled* result);
 
+void get_raw_quaternion_change_from_gyroscope(quat_raw* change, quaternion* previous_quaternion, vector* gyroscope, double time_in_seconds_since_last_reading);
+void fuse_raw_quaternion_change_with_accelerometer(quat_raw* change, quaternion* previous_quaternion, vector* accelerometer);
+
 // magnetometer data, returns initial offset values averages over 500 cycles
 const HMCdatascaled* hmc_init();
 esp_err_t get_scaled_HMCdata(HMCdatascaled* result);
