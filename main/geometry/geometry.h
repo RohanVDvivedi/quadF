@@ -70,6 +70,8 @@ void hamilton_product(quaternion* C, quaternion* A, quaternion* B);
 
 void to_quaternion(quaternion* destination, quat_raw* source);
 
+void get_unit_rotation_axis(vector* axis, quaternion* source);
+
 void conjugate(quaternion* destination, quaternion* source);
 
 void reciprocal(quaternion* destination, quaternion* source);

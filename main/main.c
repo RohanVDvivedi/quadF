@@ -25,6 +25,7 @@ HMCdatascaled hmcdatasc;
 Barodatascaled bdatasc;
 
 quaternion quat;
+quat_raw quat_r;
 
 void sensor_loop(void* not_required);
 
@@ -48,6 +49,10 @@ void app_main(void)
         vTaskDelay(100 / portTICK_PERIOD_MS);
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
+
+        get_unit_rotation_axis(&(quat_r.vectr), &quat);
+        quat_r.theta = 2 * acos(quat.sc) * 180 / M_PI;
+        printf("\t%lf \t%lf \t%lf \t\t %lf\n\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
 
         //printf("accl : \t%lf \t%lf \t%lf\n", mpudatasc.accl.xi, mpudatasc.accl.yj, mpudatasc.accl.zk);
         //printf("temp : \t%lf\n", mpudatasc.temp);
@@ -119,9 +124,9 @@ void sensor_loop(void* not_required)
             hamilton_product(&final_quat, &quat_change, &gyro_accl);
             gyro_accl = final_quat;
 
-            vector temp = quat_raw_change.vectr;
+            quat = gyro_accl;
+            //quat_r = quat_raw_change;
 
-            //printf("fq => %lf \t %lf \t %lf\n\n", temp.xi, temp.yj, temp.zk);
             now_time = get_milli_timer_ticks_count();
             last_mpu_read_time = now_time;
         }

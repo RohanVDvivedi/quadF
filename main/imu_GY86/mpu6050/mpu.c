@@ -87,9 +87,9 @@ esp_err_t get_scaled_MPUdata(MPUdatascaled* result)
     result->temp  = (((double)(data.temp)) / 340) + 36.53;
 
     // in dps, degrees per second => sensitivity = +/-250
-    result->gyro.xi = ((((double)(data.gyrox)) * 250.0) / 32768.0) - offsets.gyro.xi;
-    result->gyro.yj = ((((double)(data.gyroy)) * 250.0) / 32768.0) - offsets.gyro.yj;
-    result->gyro.zk = ((((double)(data.gyroz)) * 250.0) / 32768.0) - offsets.gyro.zk;
+    result->gyro.xi = ((((double)(data.gyrox)) * 250.0) / 32768.0) - initial.gyro.xi;
+    result->gyro.yj = ((((double)(data.gyroy)) * 250.0) / 32768.0) - initial.gyro.yj;
+    result->gyro.zk = ((((double)(data.gyroz)) * 250.0) / 32768.0) - initial.gyro.zk;
 
     return err;
 }

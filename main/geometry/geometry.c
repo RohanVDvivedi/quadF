@@ -109,6 +109,14 @@ void to_quaternion(quaternion* destination, quat_raw* source)
 	destination->zk = sine * source->vectr.zk;
 }
 
+void get_unit_rotation_axis(vector* axis, quaternion* source)
+{
+	axis->xi = source->xi;
+	axis->yj = source->yj;
+	axis->zk = source->zk;
+	unit_vector(axis, axis);
+}
+
 void conjugate(quaternion* destination, quaternion* source)
 {
 	destination->sc = +(source->sc);
