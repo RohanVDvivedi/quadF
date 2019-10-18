@@ -51,6 +51,8 @@ double dot(vector* A, vector* B);
 // angle between vectors in degrees
 double angle_between_vectors(vector* A, vector* B);
 
+void unit_vector(vector* unitResult, vector* A);
+
 // C = component of A parallel to B
 void parallel_component(vector* C, vector* A, vector* B);
 
@@ -61,17 +63,19 @@ void perpendicular_component(vector* C, vector* A, vector* B);
 double magnitude_vector(vector* D);
 
 // get magnitude of the quaternion
-double magnitude_quaternion(quaternion* D);
+double norm(quaternion* D);
 
-// multiply quaternions
-void multiply(quaternion* C, quaternion* A, quaternion* B);
+// multiply quaternions with hamilton product in order as C = AB
+void hamilton_product(quaternion* C, quaternion* A, quaternion* B);
 
 void to_quaternion(quaternion* destination, quat_raw* source);
 
 void conjugate(quaternion* destination, quaternion* source);
 
-// rotates a given vector by a given quaternion
-void rotate_vector(vector* result, quaternion* rotation_quaternion, vector* initial);
+void reciprocal(quaternion* destination, quaternion* source);
+
+// rotates a given vector by a given quaternion, must return 0
+double rotate_vector(vector* result, quaternion* rotation_quaternion, vector* initial);
 
 // this method returns the quaternion rotation that caused tips of Ai and Bi non collinear vectors
 // of the object, to move to final positions Af and Bf respectively

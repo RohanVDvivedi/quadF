@@ -50,11 +50,17 @@ double angle_between_vectors(vector* A, vector* B)
 	}
 }
 
+void unit_vector(vector* unitResult, vector* A)
+{
+	double magnit = magnitude_vector(A);
+	multiply_scalar(unitResult, A, 1.0/magnit);
+}
+
 // C = component of A parallel to B
 void parallel_component(vector* C, vector* A, vector* B)
 {
 	// this step makes C = unit vector in direction of B
-	multiply_scalar(C, B, 1/magnitude_vector(B));
+	unit_vector(C, B);
 
 	// this is the magnitude of the component of A in direction of B
 	double parallel_component_magnitude = dot(A, B) / magnitude_vector(B);
@@ -79,12 +85,12 @@ double magnitude_vector(vector* A)
 	return sqrt(dot(A, &temp));
 }
 
-double magnitude_quaternion(quaternion* A)
+double norm(quaternion* A)
 {
 	return sqrt((A->sc * A->sc) + (A->xi * A->xi) + (A->yj * A->yj) + (A->zk * A->zk));
 }
 
-void multiply(quaternion* C, quaternion* A, quaternion* B)
+void hamilton_product(quaternion* C, quaternion* A, quaternion* B)
 {
 	C->sc = (A->sc * B->sc) - (A->xi * B->xi) - (A->yj * B->yj) - (A->zk * B->zk);
 	C->xi = (A->sc * B->xi) + (A->xi * B->sc) + (A->yj * B->zk) - (A->zk * B->yj);
@@ -94,30 +100,44 @@ void multiply(quaternion* C, quaternion* A, quaternion* B)
 
 void to_quaternion(quaternion* destination, quat_raw* source)
 {
-	double sine   = sin((((source->theta)*M_PI)/180.0) / 2);
-	double cosine = cos((((source->theta)*M_PI)/180.0) / 2);
-	double magnit = magnitude_vector(&(source->vectr));
+	double theta_in_radians = (source->theta) * M_PI / 180.0;
+	double sine   = sin(theta_in_radians / 2);
+	double cosine = cos(theta_in_radians / 2);
 	destination->sc = cosine;
-	destination->xi = (sine * source->vectr.xi) / magnit;
-	destination->yj = (sine * source->vectr.yj) / magnit;
-	destination->zk = (sine * source->vectr.zk) / magnit;
+	destination->xi = sine * source->vectr.xi;
+	destination->yj = sine * source->vectr.yj;
+	destination->zk = sine * source->vectr.zk;
 }
 
 void conjugate(quaternion* destination, quaternion* source)
 {
-	double magnit = magnitude_quaternion(source);
-	destination->sc = (+(source->sc)) / magnit;
-	destination->xi = (-(source->xi)) / magnit;
-	destination->yj = (-(source->yj)) / magnit;
-	destination->zk = (-(source->zk)) / magnit;
+	destination->sc = +(source->sc);
+	destination->xi = -(source->xi);
+	destination->yj = -(source->yj);
+	destination->zk = -(source->zk);
+}
+
+void reciprocal(quaternion* destination, quaternion* source)
+{
+	// take conjugate
+	conjugate(destination, source);
+
+	// divide by the square of norm
+	double norm 	= norm(source);
+	double norm_2 	= norm * norm;
+
+	destination->sc = destination->sc / norm_2;
+	destination->xi = destination->xi / norm_2;
+	destination->yj = destination->yj / norm_2;
+	destination->zk = destination->zk / norm_2;
 }
 
 // F is the final vector we get by rotating I by a quaternion R
 // F = R * I * Rconj
-void rotate_vector(vector* F, quaternion* R, vector* I)
+double rotate_vector(vector* F, quaternion* R, vector* I)
 {
-	quaternion Rconj;
-	conjugate(&Rconj, R);
+	quaternion Rinverse;
+	reciprocal(&Rinverse, R);
 
 	quaternion Itemp;
 	Itemp.sc = 0;
@@ -130,11 +150,13 @@ void rotate_vector(vector* F, quaternion* R, vector* I)
 	quaternion Ftemp;
 
 	multiply(&temp, 	R, &Itemp			);
-	multiply(&Ftemp, 	&temp, 		&Rconj	);
+	multiply(&Ftemp, 	&temp, 		&Rinverse	);
 
 	F->xi = Ftemp.xi;
 	F->yj = Ftemp.yj;
 	F->zk = Ftemp.zk;
+
+	return F->sc;
 }
 #include<stdio.h>
 void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* Ai, vector* Bf, vector* Bi)
