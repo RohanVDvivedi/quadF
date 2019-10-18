@@ -123,8 +123,8 @@ void reciprocal(quaternion* destination, quaternion* source)
 	conjugate(destination, source);
 
 	// divide by the square of norm
-	double norm 	= norm(source);
-	double norm_2 	= norm * norm;
+	double norm_1 	= norm(source);
+	double norm_2 	= norm_1 * norm_1;
 
 	destination->sc = destination->sc / norm_2;
 	destination->xi = destination->xi / norm_2;
@@ -149,14 +149,14 @@ double rotate_vector(vector* F, quaternion* R, vector* I)
 
 	quaternion Ftemp;
 
-	multiply(&temp, 	R, &Itemp			);
-	multiply(&Ftemp, 	&temp, 		&Rinverse	);
+	hamilton_product(&temp, 	R, &Itemp );
+	hamilton_product(&Ftemp, 	&temp, 		&Rinverse	);
 
 	F->xi = Ftemp.xi;
 	F->yj = Ftemp.yj;
 	F->zk = Ftemp.zk;
 
-	return F->sc;
+	return Ftemp.sc;
 }
 #include<stdio.h>
 void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* Ai, vector* Bf, vector* Bi)
@@ -207,10 +207,8 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	// closer this is to 0, more the accuracy, by taking the calculation from that vector
 	double angle_raw_vectr_Af_90 = angle_between_vectors(Af, &(raw.vectr));
 	double angle_raw_vectr_Bf_90 = angle_between_vectors(Bf, &(raw.vectr));
-	angle_raw_vectr_Af_90 = (angle_raw_vectr_Af_90 > 90) ? (180 - angle_raw_vectr_Af_90) : angle_raw_vectr_Af_90;
-	angle_raw_vectr_Bf_90 = (angle_raw_vectr_Bf_90 > 90) ? (180 - angle_raw_vectr_Bf_90) : angle_raw_vectr_Bf_90;
-	angle_raw_vectr_Af_90 = 90 - angle_raw_vectr_Af_90;
-	angle_raw_vectr_Bf_90 = 90 - angle_raw_vectr_Bf_90; 
+	angle_raw_vectr_Af_90 = 90 - ((angle_raw_vectr_Af_90 > 90) ? (180 - angle_raw_vectr_Af_90) : angle_raw_vectr_Af_90);
+	angle_raw_vectr_Bf_90 = 90 - ((angle_raw_vectr_Bf_90 > 90) ? (180 - angle_raw_vectr_Bf_90) : angle_raw_vectr_Bf_90);
 
 	if(raw_vectr_sign_inversion_required_a == raw_vectr_sign_inversion_required_b)
 	{
@@ -231,6 +229,7 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	double angle_by_A = angle_between_vectors(&Afp, &Aip);
 	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
 
+	//printf("%lf \t%lf\n", angle_raw_vectr_Af_90, angle_raw_vectr_Bf_90);
 	//printf("%lf \t%lf\n", angle_by_A, angle_by_B);
 
 	raw.theta = (angle_by_A + angle_by_B)/2;

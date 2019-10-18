@@ -113,16 +113,15 @@ void sensor_loop(void* not_required)
             now_time = get_milli_timer_ticks_count();
             quat_raw quat_raw_change;
             get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &gyro_accl, &(mpudatasc.gyro), ((double)(now_time - last_mpu_read_time))/1000000);
-            fuse_raw_quaternion_change_with_accelerometer(&quat_raw_change, &gyro_accl, &(mpudatasc.accl));
             quaternion quat_change;
             to_quaternion(&quat_change, &quat_raw_change);
             quaternion final_quat;
-            multiply(&final_quat, &quat_change, &gyro_accl);
+            hamilton_product(&final_quat, &quat_change, &gyro_accl);
             gyro_accl = final_quat;
 
-            vector temp; temp.xi = gyro_accl.xi; temp.yj = gyro_accl.yj; temp.zk = gyro_accl.zk; double mag = magnitude_vector(&temp); double anglef = 2 * (acos(gyro_accl.sc) * 180 / M_PI);
+            vector temp = quat_raw_change.vectr;
 
-            printf("fq => %lf \t %lf \t %lf \t\t %lf\n\n", temp.xi, temp.yj, temp.zk, anglef);
+            //printf("fq => %lf \t %lf \t %lf\n\n", temp.xi, temp.yj, temp.zk);
             now_time = get_milli_timer_ticks_count();
             last_mpu_read_time = now_time;
         }

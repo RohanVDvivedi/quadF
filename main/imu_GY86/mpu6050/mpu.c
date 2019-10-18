@@ -96,16 +96,19 @@ esp_err_t get_scaled_MPUdata(MPUdatascaled* result)
 
 void get_raw_quaternion_change_from_gyroscope(quat_raw* change, quaternion* previous_quaternion, vector* gyroscope, double time_in_seconds_since_last_reading)
 {
-    // rotate gyroscope vector by the previous quaternion
+    // vectr is now the unit vector in the direction of rotation wrt to local current axis
+    unit_vector(&(change->vectr), gyroscope);
+
+    // the angle of rotation since past reading of gyroscope
+    change->theta = magnitude_vector(gyroscope) * time_in_seconds_since_last_reading;
+
+    // rotate vectr
     quaternion reverse_rotation;
     conjugate(&reverse_rotation, previous_quaternion);
-    vector gyroscope_wrt_initial_attitude;
-    rotate_vector(&gyroscope_wrt_initial_attitude, &reverse_rotation, gyroscope);
+    vector rotation_axis;
+    rotate_vector(&rotation_axis, &reverse_rotation, &(change->vectr));
+    change->vectr = rotation_axis;
 
-    double angular_rotation_rate = magnitude_vector(&gyroscope_wrt_initial_attitude);
-
-    multiply_scalar(&(change->vectr), &gyroscope_wrt_initial_attitude, 1/magnitude_vector(&gyroscope_wrt_initial_attitude));
-    change->theta = angular_rotation_rate * time_in_seconds_since_last_reading;
 
     static uint8_t uninitialized = 1;
     if(uninitialized == 1)
@@ -113,45 +116,4 @@ void get_raw_quaternion_change_from_gyroscope(quat_raw* change, quaternion* prev
         change->theta = 0;
         uninitialized = 0;
     }
-
-    printf("gc => %lf \t %lf \t %lf \n\n", change->vectr.xi, change->vectr.yj, change->vectr.zk);
-    printf("gngl => %lf \n", change->theta); 
-}
-
-void fuse_raw_quaternion_change_with_accelerometer(quat_raw* change, quaternion* previous_quaternion, vector* accelerometer)
-{
-    // rotate accelerometer vector by the previous quaternion
-    quaternion reverse_rotation;
-    conjugate(&reverse_rotation, previous_quaternion);
-    vector accelerometer_wrt_initial_attitude;
-    rotate_vector(&accelerometer_wrt_initial_attitude, &reverse_rotation, accelerometer);
-
-    vector accelerometer_perpendicular_component;
-    perpendicular_component(&accelerometer_perpendicular_component, accelerometer, &(change->vectr));
-
-    static uint8_t uninitialized = 1;
-    static vector accelerometer_perpendicular_component_previous;
-    if(uninitialized == 1)
-    {
-        change->theta = 0;
-        accelerometer_perpendicular_component_previous = accelerometer_perpendicular_component;
-        uninitialized = 0;
-    }
-    else
-    {
-        double accl_angle_change = angle_between_vectors(&accelerometer_perpendicular_component_previous, &accelerometer_perpendicular_component);
-        vector AfcrossAi;
-        cross(&AfcrossAi, &accelerometer_perpendicular_component, &accelerometer_perpendicular_component_previous);
-        printf("ac => %lf \t %lf \t %lf \n\n", AfcrossAi.xi/magnitude_vector(&AfcrossAi), AfcrossAi.yj/magnitude_vector(&AfcrossAi), AfcrossAi.zk/magnitude_vector(&AfcrossAi));
-        double angle_AicrossAf_change = angle_between_vectors(&AfcrossAi, &(change->vectr));
-        printf("TEMP = %lf\n", angle_AicrossAf_change);
-        if(angle_AicrossAf_change > 170)
-        {
-            accl_angle_change = -accl_angle_change;
-        }
-        printf("angl => %lf \n", accl_angle_change); 
-        change->theta = change->theta * 0.97 + accl_angle_change * 0.03;
-        accelerometer_perpendicular_component_previous = accelerometer_perpendicular_component;
-    }
-    
 }
