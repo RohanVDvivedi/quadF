@@ -52,7 +52,7 @@ void app_main(void)
 
         get_unit_rotation_axis(&(quat_r.vectr), &quat);
         quat_r.theta = 2 * acos(quat.sc) * 180 / M_PI;
-        //printf("%lf \t %lf \t %lf \t\t %lf\n\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
+        printf("%lf \t %lf \t %lf \t\t %lf\n\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
 
         //printf("accl : \t%lf \t%lf \t%lf\n", mpudatasc.accl.xi, mpudatasc.accl.yj, mpudatasc.accl.zk);
         //printf("temp : \t%lf\n", mpudatasc.temp);
