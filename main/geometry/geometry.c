@@ -231,8 +231,8 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	double angle_by_A = angle_between_vectors(&Afp, &Aip);
 	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
 
-	double factorA = pow(2.718, angle_raw_vectr_Af_90);
-	double factorB = pow(2.718, angle_raw_vectr_Bf_90);
+	double factorA = pow(2.718, angle_raw_vectr_Af_90/10);
+	double factorB = pow(2.718, angle_raw_vectr_Bf_90/10);
 	factorA = factorA / (factorA + factorB);
 	factorB = 1 - factorA;
 

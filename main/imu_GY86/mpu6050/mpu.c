@@ -46,19 +46,12 @@ const MPUdatascaled* mpu_init()
     {
         MPUdatascaled datasc;
         get_scaled_MPUdata(&datasc);
-        if(i == 0)
-        {
-            initial = datasc;
-        }
-        else
-        {
-            initial.accl.xi += (datasc.accl.xi/500);
-            initial.accl.yj += (datasc.accl.yj/500);
-            initial.accl.zk += (datasc.accl.zk/500);
-            initial.gyro.xi += (datasc.gyro.xi/500);
-            initial.gyro.yj += (datasc.gyro.yj/500);
-            initial.gyro.zk += (datasc.gyro.zk/500);
-        }
+        initial.accl.xi += (datasc.accl.xi/500);
+        initial.accl.yj += (datasc.accl.yj/500);
+        initial.accl.zk += (datasc.accl.zk/500);
+        initial.gyro.xi += (datasc.gyro.xi/500);
+        initial.gyro.yj += (datasc.gyro.yj/500);
+        initial.gyro.zk += (datasc.gyro.zk/500);
         vTaskDelay(14 / portTICK_PERIOD_MS);
     }
 
