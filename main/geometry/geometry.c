@@ -215,15 +215,11 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	// closer this is to 0, more the accuracy, by taking the calculation from that vector
 	double angle_raw_vectr_Af_90 = angle_between_vectors(Af, &(raw.vectr));
 	double angle_raw_vectr_Bf_90 = angle_between_vectors(Bf, &(raw.vectr));
-	angle_raw_vectr_Af_90 = 90 - ((angle_raw_vectr_Af_90 > 90) ? (180 - angle_raw_vectr_Af_90) : angle_raw_vectr_Af_90);
-	angle_raw_vectr_Bf_90 = 90 - ((angle_raw_vectr_Bf_90 > 90) ? (180 - angle_raw_vectr_Bf_90) : angle_raw_vectr_Bf_90);
+	angle_raw_vectr_Af_90 = ((angle_raw_vectr_Af_90 > 90) ? (180 - angle_raw_vectr_Af_90) : angle_raw_vectr_Af_90);
+	angle_raw_vectr_Bf_90 = ((angle_raw_vectr_Bf_90 > 90) ? (180 - angle_raw_vectr_Bf_90) : angle_raw_vectr_Bf_90);
 
-	if(raw_vectr_sign_inversion_required_a == raw_vectr_sign_inversion_required_b)
-	{
-		multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_a);
-	}
 	// else use the one whose angle with rotation axis is closer to 90
-	else if(angle_raw_vectr_Af_90 < angle_raw_vectr_Bf_90)
+	if(angle_raw_vectr_Af_90 > angle_raw_vectr_Bf_90)
 	{
 		multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_a);
 	}
@@ -232,15 +228,15 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 		multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_b);
 	}
 
-	//printf("axl : %lf\t %lf\t %lf\n\n", raw.vectr.xi, raw.vectr.yj, raw.vectr.zk);
-
 	double angle_by_A = angle_between_vectors(&Afp, &Aip);
 	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
 
-	//printf("%lf \t%lf\n", angle_raw_vectr_Af_90, angle_raw_vectr_Bf_90);
-	//printf("%lf \t%lf\n", angle_by_A, angle_by_B);
+	double factorA = pow(2.718, angle_raw_vectr_Af_90);
+	double factorB = pow(2.718, angle_raw_vectr_Bf_90);
+	factorA = factorA / (factorA + factorB);
+	factorB = 1 - factorA;
 
-	raw.theta = (angle_by_A + angle_by_B)/2;
+	raw.theta = factorA * angle_by_A + factorB * angle_by_B;
 
 	to_quaternion(quat, &raw);
 }

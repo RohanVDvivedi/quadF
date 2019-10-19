@@ -52,7 +52,7 @@ void app_main(void)
 
         get_unit_rotation_axis(&(quat_r.vectr), &quat);
         quat_r.theta = 2 * acos(quat.sc) * 180 / M_PI;
-        printf("\t%lf \t%lf \t%lf \t\t %lf\n\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
+        //printf("\t%lf \t%lf \t%lf \t\t %lf\n\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
 
         //printf("accl : \t%lf \t%lf \t%lf\n", mpudatasc.accl.xi, mpudatasc.accl.yj, mpudatasc.accl.zk);
         //printf("temp : \t%lf\n", mpudatasc.temp);
@@ -124,9 +124,8 @@ void sensor_loop(void* not_required)
             hamilton_product(&final_quat, &quat_change, &gyro_accl);
             gyro_accl = final_quat;
 
-            quat = gyro_accl;
-            //quat_r = quat_raw_change;
-
+            //quat = gyro_accl;
+            
             now_time = get_milli_timer_ticks_count();
             last_mpu_read_time = now_time;
         }
@@ -136,6 +135,7 @@ void sensor_loop(void* not_required)
         {
             get_scaled_HMCdata(&hmcdatasc);
             get_quaternion_from_vectors_changes(&accl_magn, &(mpudatasc.accl), &(mpuOff->accl), &(hmcdatasc.magn), &(hmcOff->magn));
+            quat = accl_magn;
             now_time = get_milli_timer_ticks_count();
             last_hmc_read_time = now_time;
         }
