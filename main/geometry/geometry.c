@@ -167,6 +167,45 @@ double rotate_vector(vector* F, quaternion* R, vector* I)
 	return Ftemp.sc;
 }
 #include<stdio.h>
+void slerp_quaternion(quaternion* Result, quaternion* A, double factorA, quaternion* B)
+{
+	double dot = (A->sc * B->sc + A->xi * B->xi + A->yj * B->yj + A->zk * B->zk);
+	dot = dot / ((A->sc * A->sc + A->xi * A->xi + A->yj * A->yj + A->zk * A->zk) * (B->sc * B->sc + B->xi * B->xi + B->yj * B->yj + B->zk * B->zk));
+	
+	double thet;
+	if(dot >= 1)
+	{
+		thet = 0;
+	}
+	else if(dot <= -1)
+	{
+		thet = 180;
+	}
+	else
+	{
+		thet = acos(dot);
+	}
+
+	double sinet = sin(thet * factorA);
+	double sinet_1 = sin(thet * (1 - factorA));
+	double sine = sin(thet);
+
+	if(sine == 0)
+	{
+		Result->sc = (A->sc * factorA + B->sc * (1 - factorA))/sine;
+		Result->xi = (A->xi * factorA + B->xi * (1 - factorA))/sine;
+		Result->yj = (A->yj * factorA + B->yj * (1 - factorA))/sine;
+		Result->zk = (A->zk * factorA + B->zk * (1 - factorA))/sine;
+	}
+	else
+	{
+		Result->sc = (A->sc * sinet + B->sc * sinet_1)/sine;
+		Result->xi = (A->xi * sinet + B->xi * sinet_1)/sine;
+		Result->yj = (A->yj * sinet + B->yj * sinet_1)/sine;
+		Result->zk = (A->zk * sinet + B->zk * sinet_1)/sine;
+	}
+}
+
 void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* Ai, vector* Bf, vector* Bi)
 {
 	vector A;diff(&A, Af, Ai);

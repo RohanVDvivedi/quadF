@@ -102,10 +102,7 @@ void sensor_loop(void* not_required)
     baro_init();
 
     // initialize quaternions to 0 rotation 1 0 0 0
-    // gyroscope and accelerometer quaternion fusion
-    quaternion gyro_accl = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0};
-    // accelerometer and magnetometer quaternion fusion
-    quaternion accl_magn = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0};
+    quaternion oreo = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0};
 
     while(1)
     {
@@ -115,16 +112,33 @@ void sensor_loop(void* not_required)
         if(now_time - last_mpu_read_time >= 1000)
         {
             get_scaled_MPUdata(&mpudatasc);
+
+            // gyroscope integration logic
             now_time = get_milli_timer_ticks_count();
             quat_raw quat_raw_change;
-            get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &gyro_accl, &(mpudatasc.gyro), ((double)(now_time - last_mpu_read_time))/1000000);
+            get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &oreo, &(mpudatasc.gyro), ((double)(now_time - last_mpu_read_time))/1000000);
             quaternion quat_change;
             to_quaternion(&quat_change, &quat_raw_change);
-            quaternion final_quat;
-            hamilton_product(&final_quat, &quat_change, &gyro_accl);
-            gyro_accl = final_quat;
+            quaternion final_quat_gyro;
+            hamilton_product(&final_quat_gyro, &quat_change, &oreo);
 
-            //quat = gyro_accl;
+            // accelerometer magnetometer logic
+            quaternion final_quat_accl_magn;
+            get_quaternion_from_vectors_changes(&final_quat_accl_magn, &(mpudatasc.accl), &(mpuOff->accl), &(hmcdatasc.magn), &(hmcOff->magn));
+            conjugate(&final_quat_accl_magn, &final_quat_accl_magn);
+
+            if( isnan(final_quat_accl_magn.xi) || isnan(final_quat_accl_magn.yj) || isnan(final_quat_accl_magn.zk) || isnan(final_quat_accl_magn.sc) )
+            {
+                final_quat_accl_magn = oreo;
+            }
+            else if( isnan(final_quat_gyro.xi) || isnan(final_quat_gyro.yj) || isnan(final_quat_gyro.xi) || isnan(final_quat_gyro.sc) )
+            {
+                final_quat_gyro = final_quat_accl_magn;
+            }
+
+            slerp_quaternion(&oreo, &final_quat_gyro, 0.98, &final_quat_accl_magn);
+
+            quat = oreo;
             
             now_time = get_milli_timer_ticks_count();
             last_mpu_read_time = now_time;
@@ -134,8 +148,22 @@ void sensor_loop(void* not_required)
         if(now_time - last_hmc_read_time >= 11000)
         {
             get_scaled_HMCdata(&hmcdatasc);
-            get_quaternion_from_vectors_changes(&accl_magn, &(mpudatasc.accl), &(mpuOff->accl), &(hmcdatasc.magn), &(hmcOff->magn));
-            quat = accl_magn;
+
+            // accelerometer magnetometer logic
+            quaternion final_quat_accl_magn;
+            get_quaternion_from_vectors_changes(&final_quat_accl_magn, &(mpudatasc.accl), &(mpuOff->accl), &(hmcdatasc.magn), &(hmcOff->magn));
+            conjugate(&final_quat_accl_magn, &final_quat_accl_magn);
+
+            if( isnan(final_quat_accl_magn.xi) || isnan(final_quat_accl_magn.yj) || isnan(final_quat_accl_magn.zk) || isnan(final_quat_accl_magn.sc) )
+            {
+                final_quat_accl_magn = oreo;
+            }
+
+            quaternion old_oreo = oreo;
+            slerp_quaternion(&oreo, &final_quat_accl_magn, 0.02, &old_oreo);
+
+            quat = oreo;
+
             now_time = get_milli_timer_ticks_count();
             last_hmc_read_time = now_time;
         }
