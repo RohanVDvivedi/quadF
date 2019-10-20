@@ -166,7 +166,14 @@ double rotate_vector(vector* F, quaternion* R, vector* I)
 
 	return Ftemp.sc;
 }
-#include<stdio.h>
+
+void update_vector(vector* result, vector* new_value, double factor)
+{
+	result->xi = result->xi * (1 - factor) + new_value->xi * factor;
+	result->yj = result->yj * (1 - factor) + new_value->yj * factor;
+	result->zk = result->zk * (1 - factor) + new_value->zk * factor;
+}
+
 void slerp_quaternion(quaternion* Result, quaternion* A, double factorA, quaternion* B)
 {
 	double dot = (A->sc * B->sc + A->xi * B->xi + A->yj * B->yj + A->zk * B->zk);

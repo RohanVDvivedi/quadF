@@ -79,6 +79,9 @@ void reciprocal(quaternion* destination, quaternion* source);
 // rotates a given vector by a given quaternion, must return 0
 double rotate_vector(vector* result, quaternion* rotation_quaternion, vector* initial);
 
+// averaged update
+void update_vector(vector* result, vector* updated_value, double factor);
+
 // Spherical linear interpolation of two quaternions
 void slerp_quaternion(quaternion* Result, quaternion* A, double factorA, quaternion* B);
 
