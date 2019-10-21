@@ -46,6 +46,12 @@ void app_main(void)
 
         vector angles;
         get_absolute_rotation_angles_about_local_axis(&angles);
+        //vector xl;  get_current_local_X_axis(&xl);
+        //vector yl;  get_current_local_Y_axis(&yl);
+        //vector zl;  get_current_local_Z_axis(&zl);
+        //printf("xl : %lf \t %lf \t %lf\n", xl.xi, xl.yj, xl.zk);
+        //printf("yl : %lf \t %lf \t %lf\n", yl.xi, yl.yj, yl.zk);
+        //printf("zl : %lf \t %lf \t %lf\n", zl.xi, zl.yj, zl.zk);
         printf("%lf \t %lf \t %lf\n\n", angles.xi, angles.yj, angles.zk);
     }
     while(1);
