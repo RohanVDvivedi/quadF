@@ -24,10 +24,12 @@ struct state
 
 extern state State;
 
-void get_current_local_X_axis(vector* xl, quaternion oreo);
+void get_current_local_X_axis(vector* xl);
 
-void get_current_local_Y_axis(vector* yl, quaternion oreo);
+void get_current_local_Y_axis(vector* yl);
 
-void get_current_local_Z_axis(vector* zl, quaternion oreo);
+void get_current_local_Z_axis(vector* zl);
+
+void get_absolute_rotation_angles_about_local_axis(vector* angles);
 
 #endif
