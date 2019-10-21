@@ -34,12 +34,40 @@ void get_absolute_rotation_angles_about_local_axis(vector* angles)
 	vector yl;	get_current_local_Y_axis(&yl);
 	vector zl;	get_current_local_Z_axis(&zl);
 
+	double mag;
+	vector zero_v = {.xi = 0.0, .yj = 0.0, .zk = 0.0};
+	vector temp   = zero_v;
+	vector temp1  = zero_v;
+
 	// ABSOLUTE roll calculation
 	// angles.xi = absolute roll
+	temp = zero_v;
 
 	// ABSOLUTE pitch calculation
 	// angles.yj = absolute pitch
+	temp = zero_v;
+	mag = sqrt(yl.xi * yl.xi + yl.yj * yl.yj);
+	if(mag != 0)
+	{
+		temp.xi = yl.yj / mag;
+		temp.yj = -yl.xi / mag;
+		cross(&temp1, &xl, &temp);
+		if(angle_between_vectors(&temp1, &yl) > 170)
+		{
+			multiply_scalar(&temp, &temp, -1);
+		}
+		angles->yj = angle_between_vectors(&temp, &xl);
+		if(xl.zk < 0)
+		{
+			angles->yj = angles->yj - 180;
+		}
+	}
+	else
+	{
+		angles->yj = NAN;
+	}
 
 	// ABSOLUTE yaw calculation
 	// angles.zk = absolute yaw
+	temp = zero_v;
 }
