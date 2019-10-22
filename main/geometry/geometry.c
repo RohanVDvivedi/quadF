@@ -212,7 +212,7 @@ void slerp_quaternion(quaternion* Result, quaternion* A, double factorA, quatern
 		Result->zk = (A->zk * sinet + B->zk * sinet_1)/sine;
 	}
 }
-#include<stdio.h>
+
 void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* Ai, vector* Bf, vector* Bi)
 {
 	vector A;diff(&A, Af, Ai);
@@ -277,8 +277,8 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	double angle_by_A = angle_between_vectors(&Afp, &Aip);
 	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
 
-	double factorA = pow(2.718, 1 + angle_raw_vectr_Af_90/5);
-	double factorB = pow(2.718, 1 + angle_raw_vectr_Bf_90/5);
+	double factorA = pow(2.718, 1 + angle_raw_vectr_Af_90/3);
+	double factorB = pow(2.718, 1 + angle_raw_vectr_Bf_90/3);
 	factorA = factorA / (factorA + factorB);
 	factorB = 1 - factorA;
 

@@ -5,7 +5,8 @@ state State = {
     .angular_velocity_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
     .acceleration_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
     .altitude = -1,
-    .altitude_rate = 0.0
+    .altitude_rate = 0.0,
+    .temp = 0.0
 };
 
 void get_current_local_X_axis(vector* xl)
@@ -25,7 +26,7 @@ void get_current_local_Z_axis(vector* zl)
 	vector Z = {.xi = 0.0, .yj = 0.0, .zk = 1.0};
 	rotate_vector(zl, &(State.orientation), &Z);
 }
-
+#include<stdio.h>
 void get_absolute_rotation_angles_about_local_axis(vector* angles)
 {
 	// get unit vectors about local axis, wrt to global axis
@@ -33,6 +34,10 @@ void get_absolute_rotation_angles_about_local_axis(vector* angles)
 	vector xl;	get_current_local_X_axis(&xl);
 	vector yl;	get_current_local_Y_axis(&yl);
 	vector zl;	get_current_local_Z_axis(&zl);
+
+	//printf("xl : %lf \t %lf \t %lf\n", xl.xi, xl.yj, xl.zk);
+    //printf("yl : %lf \t %lf \t %lf\n", yl.xi, yl.yj, yl.zk);
+    //printf("zl : %lf \t %lf \t %lf\n", zl.xi, zl.yj, zl.zk);
 
 	double mag;
 	vector zero_v = {.xi = 0.0, .yj = 0.0, .zk = 0.0};

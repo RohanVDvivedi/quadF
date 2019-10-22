@@ -39,6 +39,14 @@ const MPUdatascaled* mpu_init()
         i2c_write(MPU6050_ADDRESS, 0x37, &data, 1);
     // yay we can now talk to magnetometer, or anyother sensor attached on the auxilary bus of mou6050
 
+    // set gyroscope sensitivity => 0 = +/-250 dps (degrees per second)
+    data = 0x00;
+    i2c_write(MPU6050_ADDRESS, 0x1b, &data, 1);
+
+    // set accelerometer sensitivity => 0 = +/-19.6 (meters per second square)
+    data = 0x00;
+    i2c_write(MPU6050_ADDRESS, 0x1c, &data, 1);
+
     // a small delay before we start reading the sensors
     vTaskDelay(20 / portTICK_PERIOD_MS);
 

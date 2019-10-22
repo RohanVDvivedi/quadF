@@ -23,6 +23,8 @@ struct state
 
 	// the rate at which moving away from ground
 	double altitude_rate;
+
+	double temp;
 };
 
 extern state State;

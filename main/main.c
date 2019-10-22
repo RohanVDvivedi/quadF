@@ -44,15 +44,11 @@ void app_main(void)
         quat_r.theta = 2 * acos(State.orientation.sc) * 180 / M_PI;
         //printf("%lf \t %lf \t %lf \t\t %lf\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
 
-        vector angles;
+        vector angles = {0.0, 0.0, 0.0};
         get_absolute_rotation_angles_about_local_axis(&angles);
-        //vector xl;  get_current_local_X_axis(&xl);
-        //vector yl;  get_current_local_Y_axis(&yl);
-        //vector zl;  get_current_local_Z_axis(&zl);
-        //printf("xl : %lf \t %lf \t %lf\n", xl.xi, xl.yj, xl.zk);
-        //printf("yl : %lf \t %lf \t %lf\n", yl.xi, yl.yj, yl.zk);
-        //printf("zl : %lf \t %lf \t %lf\n", zl.xi, zl.yj, zl.zk);
-        printf("%lf \t %lf \t %lf\n\n", angles.xi, angles.yj, angles.zk);
+        //printf("%lf \t %lf \t %lf\n\n", angles.xi, angles.yj, angles.zk);
+
+        printf("temp = %lf\n\n", State.temp);
     }
     while(1);
 

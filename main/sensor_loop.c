@@ -37,10 +37,12 @@ void sensor_loop(void* not_required)
             // read mpu6050 data, but also low pass the accelerometer data
             vector accl_old = mpudatasc.accl;
             get_scaled_MPUdata(&mpudatasc);
-            update_vector(&accl_old, &(mpudatasc.accl), 0.01);
+            update_vector(&accl_old, &(mpudatasc.accl), 0.02);
             mpudatasc.accl = accl_old;
 
             // gyroscope integration logic
+            State.temp = State.temp + (mpudatasc.gyro.zk * ((double)(now_time - last_mpu_read_time))/1000000);
+
             now_time = get_milli_timer_ticks_count();
             quat_raw quat_raw_change;
             get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &oreo, &(mpudatasc.gyro), ((double)(now_time - last_mpu_read_time))/1000000);
@@ -64,7 +66,7 @@ void sensor_loop(void* not_required)
             }
 
             // actual fusion logic called
-            slerp_quaternion(&oreo, &final_quat_gyro, 0.98, &final_quat_accl_magn);
+            slerp_quaternion(&oreo, &final_quat_gyro, 1.0/*0.98*/, &final_quat_accl_magn);
 
             // update the global state vector
             State.orientation = oreo;
@@ -81,21 +83,6 @@ void sensor_loop(void* not_required)
             // read hmc5883l data
             get_scaled_HMCdata(&hmcdatasc);
 
-            // accelerometer magnetometer logic
-            quaternion final_quat_accl_magn;
-            get_quaternion_from_vectors_changes(&final_quat_accl_magn, &(mpudatasc.accl), &(mpuInit->accl), &(hmcdatasc.magn), &(hmcInit->magn));
-            conjugate(&final_quat_accl_magn, &final_quat_accl_magn);
-            if( isnan(final_quat_accl_magn.xi) || isnan(final_quat_accl_magn.yj) || isnan(final_quat_accl_magn.zk) || isnan(final_quat_accl_magn.sc) )
-            {
-                final_quat_accl_magn = oreo;
-            }
-
-            // actual fusion
-            quaternion old_oreo = oreo;
-            slerp_quaternion(&oreo, &final_quat_accl_magn, 0.02, &old_oreo);
-
-            // update the global state vector
-            State.orientation = oreo;
             update_vector(&(State.magnetic_heading_local), &(hmcdatasc.magn), 1.0);
 
             now_time = get_milli_timer_ticks_count();
