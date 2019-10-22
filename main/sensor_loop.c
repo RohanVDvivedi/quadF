@@ -37,7 +37,7 @@ void sensor_loop(void* not_required)
             // read mpu6050 data, but also low pass the accelerometer data
             vector accl_old = mpudatasc.accl;
             get_scaled_MPUdata(&mpudatasc);
-            update_vector(&accl_old, &(mpudatasc.accl), 0.08);
+            update_vector(&accl_old, &(mpudatasc.accl), 0.01);
             mpudatasc.accl = accl_old;
 
             // gyroscope integration logic
