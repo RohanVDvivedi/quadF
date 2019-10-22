@@ -6,7 +6,6 @@ state State = {
     .acceleration_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
     .altitude = -1,
     .altitude_rate = 0.0,
-    .temp = 0.0
 };
 
 void get_current_local_X_axis(vector* xl)

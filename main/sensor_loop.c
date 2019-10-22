@@ -48,7 +48,6 @@ void sensor_loop(void* not_required)
 
             // gyroscope integration logic
             now_time = get_milli_timer_ticks_count();
-            State.temp = State.temp + (mpudatasc.gyro.zk * time_delta_in_seconds);
             quat_raw quat_raw_change;
             get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &oreo, &(mpudatasc.gyro), time_delta_in_seconds);
             quaternion quat_change;
