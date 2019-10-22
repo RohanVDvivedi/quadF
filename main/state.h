@@ -15,6 +15,9 @@ struct state
 	// acceleration about local sensor axis
 	vector acceleration_local;
 
+	// magnetic heading of earth wrt local axis
+	vector magnetic_heading_local;
+
 	// altitude from the ground
 	double altitude;
 

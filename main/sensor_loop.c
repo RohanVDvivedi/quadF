@@ -34,7 +34,11 @@ void sensor_loop(void* not_required)
         // read mpu every millisecond
         if(now_time - last_mpu_read_time >= 1000)
         {
+            // read mpu6050 data, but also low pass the accelerometer data
+            vector accl_old = mpudatasc.accl;
             get_scaled_MPUdata(&mpudatasc);
+            update_vector(&accl_old, &(mpudatasc.accl), 0.08);
+            mpudatasc.accl = accl_old;
 
             // gyroscope integration logic
             now_time = get_milli_timer_ticks_count();
@@ -65,7 +69,7 @@ void sensor_loop(void* not_required)
             // update the global state vector
             State.orientation = oreo;
             update_vector(&(State.angular_velocity_local), &(mpudatasc.gyro), 1.0);
-            update_vector(&(State.acceleration_local), &(mpudatasc.accl), 0.08);
+            update_vector(&(State.acceleration_local), &(mpudatasc.accl), 1.0);
             
             now_time = get_milli_timer_ticks_count();
             last_mpu_read_time = now_time;
@@ -74,6 +78,7 @@ void sensor_loop(void* not_required)
         // read hmc every 11 milliseconds
         if(now_time - last_hmc_read_time >= 11000)
         {
+            // read hmc5883l data
             get_scaled_HMCdata(&hmcdatasc);
 
             // accelerometer magnetometer logic
@@ -91,6 +96,7 @@ void sensor_loop(void* not_required)
 
             // update the global state vector
             State.orientation = oreo;
+            update_vector(&(State.magnetic_heading_local), &(hmcdatasc.magn), 1.0);
 
             now_time = get_milli_timer_ticks_count();
             last_hmc_read_time = now_time;
