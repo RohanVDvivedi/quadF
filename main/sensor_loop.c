@@ -37,15 +37,20 @@ void sensor_loop(void* not_required)
             // read mpu6050 data, but also low pass the accelerometer data
             vector accl_old = mpudatasc.accl;
             get_scaled_MPUdata(&mpudatasc);
+
+            // after reading mpu data, calculate time and update the last read time
+            now_time = get_milli_timer_ticks_count();
+            double time_delta_in_seconds = ((double)(now_time - last_mpu_read_time))/1000000;
+            last_mpu_read_time = now_time;
+
             update_vector(&accl_old, &(mpudatasc.accl), 0.02);
             mpudatasc.accl = accl_old;
 
             // gyroscope integration logic
-            State.temp = State.temp + (mpudatasc.gyro.zk * ((double)(now_time - last_mpu_read_time))/1000000);
-
             now_time = get_milli_timer_ticks_count();
+            State.temp = State.temp + (mpudatasc.gyro.zk * time_delta_in_seconds);
             quat_raw quat_raw_change;
-            get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &oreo, &(mpudatasc.gyro), ((double)(now_time - last_mpu_read_time))/1000000);
+            get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &oreo, &(mpudatasc.gyro), time_delta_in_seconds);
             quaternion quat_change;
             to_quaternion(&quat_change, &quat_raw_change);
             quaternion final_quat_gyro;
@@ -72,9 +77,6 @@ void sensor_loop(void* not_required)
             State.orientation = oreo;
             update_vector(&(State.angular_velocity_local), &(mpudatasc.gyro), 1.0);
             update_vector(&(State.acceleration_local), &(mpudatasc.accl), 1.0);
-            
-            now_time = get_milli_timer_ticks_count();
-            last_mpu_read_time = now_time;
         }
 
         // read hmc every 11 milliseconds
@@ -83,10 +85,12 @@ void sensor_loop(void* not_required)
             // read hmc5883l data
             get_scaled_HMCdata(&hmcdatasc);
 
-            update_vector(&(State.magnetic_heading_local), &(hmcdatasc.magn), 1.0);
-
+            // update last read time
             now_time = get_milli_timer_ticks_count();
             last_hmc_read_time = now_time;
+
+            // update the global state vector
+            update_vector(&(State.magnetic_heading_local), &(hmcdatasc.magn), 1.0);
         }
 
         // check on ms5611 every 12 milliseconds
