@@ -71,7 +71,7 @@ void sensor_loop(void* not_required)
             }
 
             // actual fusion logic called
-            slerp_quaternion(&oreo, &final_quat_gyro, 1.0/*0.98*/, &final_quat_accl_magn);
+            slerp_quaternion(&oreo, &final_quat_gyro, 0.98, &final_quat_accl_magn);
 
             // update the global state vector
             State.orientation = oreo;
