@@ -42,8 +42,11 @@ void sensor_loop(void* not_required)
         // read mpu every millisecond
         if(now_time - last_mpu_read_time >= 1000)
         {
-            // read mpu6050 data
+            // read mpu6050 data, and low pass accl
+            vector accl_old = mpudatasc.accl;
             get_scaled_MPUdata(&mpudatasc);
+            update_vector(&accl_old, &(mpudatasc.accl), 0.1);
+            mpudatasc.accl = accl_old;
 
             // after reading mpu data, calculate time delta and update the last read time
             now_time = get_milli_timer_ticks_count();
