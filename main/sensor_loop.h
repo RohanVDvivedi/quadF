@@ -13,6 +13,9 @@
 // this is wehre we get a global state variable, which gets updated by the sensor logic
 #include<state.h>
 
+//#define ORIENTATION_ONLY_ACCL_MAGN
+//#define ORIENTATION_ONLY_GYRO
+
 void sensor_loop(void* not_required);
 
 #endif

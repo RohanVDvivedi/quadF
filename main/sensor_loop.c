@@ -1,5 +1,13 @@
 #include<sensor_loop.h>
 
+#if   defined(ORIENTATION_ONLY_GYRO)
+    #define GYRO_FUSION_FACTOR 1.00
+#elif defined(ORIENTATION_ONLY_ACCL_MAGN)
+    #define GYRO_FUSION_FACTOR 0.00
+#else
+    #define GYRO_FUSION_FACTOR 0.98
+#endif
+
 void sensor_loop(void* not_required)
 {
     milli_timer_init();
@@ -34,17 +42,13 @@ void sensor_loop(void* not_required)
         // read mpu every millisecond
         if(now_time - last_mpu_read_time >= 1000)
         {
-            // read mpu6050 data, but also low pass the accelerometer data
-            vector accl_old = mpudatasc.accl;
+            // read mpu6050 data
             get_scaled_MPUdata(&mpudatasc);
 
-            // after reading mpu data, calculate time and update the last read time
+            // after reading mpu data, calculate time delta and update the last read time
             now_time = get_milli_timer_ticks_count();
             double time_delta_in_seconds = ((double)(now_time - last_mpu_read_time))/1000000;
             last_mpu_read_time = now_time;
-
-            update_vector(&accl_old, &(mpudatasc.accl), 0.02);
-            mpudatasc.accl = accl_old;
 
             // gyroscope integration logic
             now_time = get_milli_timer_ticks_count();
@@ -70,12 +74,12 @@ void sensor_loop(void* not_required)
             }
 
             // actual fusion logic called
-            slerp_quaternion(&oreo, &final_quat_gyro, 0.98, &final_quat_accl_magn);
+            slerp_quaternion(&oreo, &final_quat_gyro, GYRO_FUSION_FACTOR, &final_quat_accl_magn);
 
             // update the global state vector
             State.orientation = oreo;
-            update_vector(&(State.angular_velocity_local), &(mpudatasc.gyro), 1.0);
-            update_vector(&(State.acceleration_local), &(mpudatasc.accl), 1.0);
+            State.angular_velocity_local = mpudatasc.gyro;
+            State.acceleration_local = mpudatasc.accl;
         }
 
         // read hmc every 11 milliseconds
@@ -89,7 +93,7 @@ void sensor_loop(void* not_required)
             last_hmc_read_time = now_time;
 
             // update the global state vector
-            update_vector(&(State.magnetic_heading_local), &(hmcdatasc.magn), 1.0);
+            State.magnetic_heading_local = hmcdatasc.magn;
         }
 
         // check on ms5611 every 12 milliseconds
