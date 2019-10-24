@@ -179,14 +179,21 @@ void slerp_quaternion(quaternion* Result, quaternion* A, double factorA, quatern
 	double dot = (A->sc * B->sc + A->xi * B->xi + A->yj * B->yj + A->zk * B->zk);
 	dot = dot / ((A->sc * A->sc + A->xi * A->xi + A->yj * A->yj + A->zk * A->zk) * (B->sc * B->sc + B->xi * B->xi + B->yj * B->yj + B->zk * B->zk));
 	
+	quaternion B_ = (*B);
+	
+	if(dot < 0)
+	{
+		B_.xi = -B_.xi;
+		B_.yj = -B_.yj;
+		B_.zk = -B_.zk;
+		B_.sc = -B_.sc;
+		dot = -dot;
+	}
+
 	double thet;
 	if(dot >= 1)
 	{
 		thet = 0;
-	}
-	else if(dot <= -1)
-	{
-		thet = 180;
 	}
 	else
 	{
@@ -199,17 +206,17 @@ void slerp_quaternion(quaternion* Result, quaternion* A, double factorA, quatern
 
 	if(sine == 0)
 	{
-		Result->sc = (A->sc * factorA + B->sc * (1 - factorA))/sine;
-		Result->xi = (A->xi * factorA + B->xi * (1 - factorA))/sine;
-		Result->yj = (A->yj * factorA + B->yj * (1 - factorA))/sine;
-		Result->zk = (A->zk * factorA + B->zk * (1 - factorA))/sine;
+		Result->sc = (A->sc * factorA + B_.sc * (1 - factorA))/sine;
+		Result->xi = (A->xi * factorA + B_.xi * (1 - factorA))/sine;
+		Result->yj = (A->yj * factorA + B_.yj * (1 - factorA))/sine;
+		Result->zk = (A->zk * factorA + B_.zk * (1 - factorA))/sine;
 	}
 	else
 	{
-		Result->sc = (A->sc * sinet + B->sc * sinet_1)/sine;
-		Result->xi = (A->xi * sinet + B->xi * sinet_1)/sine;
-		Result->yj = (A->yj * sinet + B->yj * sinet_1)/sine;
-		Result->zk = (A->zk * sinet + B->zk * sinet_1)/sine;
+		Result->sc = (A->sc * sinet + B_.sc * sinet_1)/sine;
+		Result->xi = (A->xi * sinet + B_.xi * sinet_1)/sine;
+		Result->yj = (A->yj * sinet + B_.yj * sinet_1)/sine;
+		Result->zk = (A->zk * sinet + B_.zk * sinet_1)/sine;
 	}
 }
 
