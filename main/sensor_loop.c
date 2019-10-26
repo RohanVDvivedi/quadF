@@ -57,6 +57,10 @@ void sensor_loop(void* not_required)
             now_time = get_milli_timer_ticks_count();
             quat_raw quat_raw_change;
             get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &oreo, &(mpudatasc.gyro), time_delta_in_seconds);
+            if( isnan(quat_raw_change.vectr.xi) || isnan(quat_raw_change.vectr.yj) || isnan(quat_raw_change.vectr.zk) || isnan(quat_raw_change.theta) )
+            {
+                printf("gyro quat quat_raw_change failed\n");
+            }
             quaternion quat_change;
             to_quaternion(&quat_change, &quat_raw_change);
             quaternion final_quat_gyro;

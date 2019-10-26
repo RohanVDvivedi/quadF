@@ -53,6 +53,11 @@ double angle_between_vectors(vector* A, vector* B)
 void unit_vector(vector* unitResult, vector* A)
 {
 	double magnit = magnitude_vector(A);
+	if(magnit == 0.0)
+	{
+		// small error hurts no man
+		magnit = 0.0000001;
+	}
 	multiply_scalar(unitResult, A, 1.0/magnit);
 }
 
