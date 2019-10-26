@@ -48,12 +48,20 @@ void app_main(void)
 
     do
     {
-        vTaskDelay(1 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
 
+        // read current sensor states
+        state curr_state_t = curr_state;
 
+        // read current inputs from the user
         update_channel_state(&chn_state);
 
+        printf("yaw = %lf \t pitch = %lf \t roll = %lf \t throttle %lf \t swit = %d \t knob = %lf \n\n", chn_state.yaw, chn_state.pitch, chn_state.roll, chn_state.throttle, chn_state.swit, chn_state.knob);
 
+        quat_raw quat_r;
+        get_unit_rotation_axis(&(quat_r.vectr), &(curr_state_t.orientation));
+        quat_r.theta = 2 * acos(curr_state_t.orientation.sc) * 180 / M_PI;
+        printf("%lf \t %lf \t %lf \t\t %lf\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
     }
     while(1);
 
