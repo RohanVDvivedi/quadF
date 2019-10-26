@@ -184,6 +184,17 @@ void update_vector(vector* result, vector* new_value, double factor)
 
 void slerp_quaternion(quaternion* Result, quaternion* A, double factorA, quaternion* B)
 {
+	if(factorA == 0.0)
+	{
+		(*Result) = (*B);
+		return;
+	}
+	else if(factorA == 1.0)
+	{
+		(*Result) = (*A);
+		return;
+	}
+
 	double dot = (A->sc * B->sc + A->xi * B->xi + A->yj * B->yj + A->zk * B->zk);
 	dot = dot / ((A->sc * A->sc + A->xi * A->xi + A->yj * A->yj + A->zk * A->zk) * (B->sc * B->sc + B->xi * B->xi + B->yj * B->yj + B->zk * B->zk));
 	

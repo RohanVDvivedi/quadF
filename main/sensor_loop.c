@@ -5,7 +5,7 @@
 #elif defined(ORIENTATION_ONLY_ACCL_MAGN)
     #define GYRO_FUSION_FACTOR 0.00
 #else
-    #define GYRO_FUSION_FACTOR 0.98
+    #define GYRO_FUSION_FACTOR 0.99
 #endif
 
 void sensor_loop(void* not_required)
@@ -85,10 +85,7 @@ void sensor_loop(void* not_required)
         if(now_time - last_hmc_read_time >= 11000)
         {
             // read hmc5883l data
-            vector magn_old = hmcdatasc.magn;
             get_scaled_HMCdata(&hmcdatasc);
-            update_vector(&magn_old, &(hmcdatasc.magn), 0.1);
-            hmcdatasc.magn = magn_old;
 
             // update last read time
             now_time = get_milli_timer_ticks_count();
