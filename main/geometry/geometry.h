@@ -51,7 +51,8 @@ double dot(vector* A, vector* B);
 // angle between vectors in degrees
 double angle_between_vectors(vector* A, vector* B);
 
-void unit_vector(vector* unitResult, vector* A);
+// finding unit vector fails for the vector (0,0,0), hence will return -1 else returns 0
+int unit_vector(vector* unitResult, vector* A);
 
 // C = component of A parallel to B
 void parallel_component(vector* C, vector* A, vector* B);

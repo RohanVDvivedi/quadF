@@ -116,12 +116,4 @@ void get_raw_quaternion_change_from_gyroscope(quat_raw* change, quaternion* prev
     vector rotation_axis;
     rotate_vector(&rotation_axis, &reverse_rotation, &(change->vectr));
     change->vectr = rotation_axis;
-
-
-    static uint8_t uninitialized = 1;
-    if(uninitialized == 1)
-    {
-        change->theta = 0;
-        uninitialized = 0;
-    }
 }

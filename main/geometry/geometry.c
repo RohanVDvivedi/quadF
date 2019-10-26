@@ -50,15 +50,18 @@ double angle_between_vectors(vector* A, vector* B)
 	}
 }
 
-void unit_vector(vector* unitResult, vector* A)
+int unit_vector(vector* unitResult, vector* A)
 {
+	int failed_finding_unit_vector = 0;
 	double magnit = magnitude_vector(A);
 	if(magnit == 0.0)
 	{
 		// small error hurts no man
-		magnit = 0.0000001;
+		magnit = 0.000001;
+		failed_finding_unit_vector = -1;
 	}
 	multiply_scalar(unitResult, A, 1.0/magnit);
+	return failed_finding_unit_vector;
 }
 
 // C = component of A parallel to B

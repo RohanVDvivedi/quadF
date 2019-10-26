@@ -16,17 +16,16 @@ void sensor_loop(void* not_required)
     i2c_init();
 
     MPUdatascaled mpudatasc;
-    uint64_t last_mpu_read_time = now_time;
     const MPUdatascaled* mpuInit = mpu_init();
     mpudatasc = (*mpuInit);
-
-    State.acceleration_local = mpuInit->accl;
-    State.angular_velocity_local = mpuInit->gyro;
+    now_time = get_milli_timer_ticks_count();
+    uint64_t last_mpu_read_time = now_time;
 
 	HMCdatascaled hmcdatasc;
-    uint64_t last_hmc_read_time = now_time;
     const HMCdatascaled* hmcInit = hmc_init();
     hmcdatasc = (*hmcInit);
+    now_time = get_milli_timer_ticks_count();
+    uint64_t last_hmc_read_time = now_time;
 
     Barodatascaled bdatasc;
     uint64_t last_ms5_read_time = now_time;
@@ -34,6 +33,11 @@ void sensor_loop(void* not_required)
 
     // initialize quaternions to 0 rotation 1 0 0 0
     quaternion oreo = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0};
+
+    State.acceleration_local = mpuInit->accl;
+    State.angular_velocity_local = mpuInit->gyro;
+    State.magnetic_heading_local = hmcdatasc.magn;
+    State.orientation = oreo;
 
     while(1)
     {
@@ -53,14 +57,13 @@ void sensor_loop(void* not_required)
             double time_delta_in_seconds = ((double)(now_time - last_mpu_read_time))/1000000;
             last_mpu_read_time = now_time;
 
+            State.angular_velocity_local = mpudatasc.gyro;
+            State.acceleration_local = mpudatasc.accl;
+
             // gyroscope integration logic
             now_time = get_milli_timer_ticks_count();
             quat_raw quat_raw_change;
             get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &oreo, &(mpudatasc.gyro), time_delta_in_seconds);
-            if( isnan(quat_raw_change.vectr.xi) || isnan(quat_raw_change.vectr.yj) || isnan(quat_raw_change.vectr.zk) || isnan(quat_raw_change.theta) )
-            {
-                printf("gyro quat quat_raw_change failed\n");
-            }
             quaternion quat_change;
             to_quaternion(&quat_change, &quat_raw_change);
             quaternion final_quat_gyro;
@@ -70,25 +73,12 @@ void sensor_loop(void* not_required)
             quaternion final_quat_accl_magn;
             get_quaternion_from_vectors_changes(&final_quat_accl_magn, &(mpudatasc.accl), &(mpuInit->accl), &(hmcdatasc.magn), &(hmcInit->magn));
             conjugate(&final_quat_accl_magn, &final_quat_accl_magn);
-            if( isnan(final_quat_accl_magn.xi) || isnan(final_quat_accl_magn.yj) || isnan(final_quat_accl_magn.zk) || isnan(final_quat_accl_magn.sc) )
-            {
-                printf("accl_magn quat failed\n");
-                final_quat_accl_magn = oreo;
-            }
-
-            if( isnan(final_quat_gyro.xi) || isnan(final_quat_gyro.yj) || isnan(final_quat_gyro.zk) || isnan(final_quat_gyro.sc) )
-            {
-                printf("gyro quat failed\n");
-                final_quat_gyro = final_quat_accl_magn;
-            }
 
             // actual fusion logic called
             slerp_quaternion(&oreo, &final_quat_gyro, GYRO_FUSION_FACTOR, &final_quat_accl_magn);
 
             // update the global state vector
             State.orientation = oreo;
-            State.angular_velocity_local = mpudatasc.gyro;
-            State.acceleration_local = mpudatasc.accl;
         }
 
         // read hmc every 11 milliseconds
