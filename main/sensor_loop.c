@@ -49,7 +49,7 @@ void sensor_loop(void* not_required)
             // read mpu6050 data, and low pass accl
             vector accl_old = mpudatasc.accl;
             get_scaled_MPUdata(&mpudatasc);
-            update_vector(&accl_old, &(mpudatasc.accl), 0.1);
+            update_vector(&accl_old, &(mpudatasc.accl), 0.05);
             mpudatasc.accl = accl_old;
 
             // after reading mpu data, calculate time delta and update the last read time
@@ -85,7 +85,10 @@ void sensor_loop(void* not_required)
         if(now_time - last_hmc_read_time >= 11000)
         {
             // read hmc5883l data
+            vector magn_old = hmcdatasc.magn;
             get_scaled_HMCdata(&hmcdatasc);
+            update_vector(&magn_old, &(hmcdatasc.magn), 0.1);
+            hmcdatasc.magn = magn_old;
 
             // update last read time
             now_time = get_milli_timer_ticks_count();

@@ -42,13 +42,13 @@ void app_main(void)
         quat_raw quat_r;
         get_unit_rotation_axis(&(quat_r.vectr), &(State.orientation));
         quat_r.theta = 2 * acos(State.orientation.sc) * 180 / M_PI;
-        //printf("%lf \t %lf \t %lf \t\t %lf\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
+        printf("%lf \t %lf \t %lf \t\t %lf\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
 
         vector angles = {0.0, 0.0, 0.0};
         get_absolute_rotation_angles_about_local_axis(&angles);
         //printf("%lf \t %lf \t %lf\n\n", angles.xi, angles.yj, angles.zk);
 
-        printf("%lf \t %lf \t %lf\n\n", State.magnetic_heading_local.xi, State.magnetic_heading_local.yj, State.magnetic_heading_local.zk);
+        //printf("%lf \t %lf \t %lf\n\n", State.magnetic_heading_local.xi, State.magnetic_heading_local.yj, State.magnetic_heading_local.zk);
     }
     while(1);
 
