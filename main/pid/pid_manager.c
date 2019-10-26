@@ -3,7 +3,7 @@
 pid_state pitch_rate_pid = {
 	.constants = {
 		.Kp = 0.0,
-		.Ki = 1.0,
+		.Ki = 0.0,
 		.Kd = 0.0,
 		.Irange = 200.0
 	}
@@ -12,13 +12,13 @@ pid_state pitch_rate_pid = {
 pid_state roll_rate_pid = {
 	.constants = {
 		.Kp = 0.0,
-		.Ki = 1.0,
+		.Ki = 0.0,
 		.Kd = 0.0,
 		.Irange = 200.0
 	}
 };
 
-//#define TUNE pitch_rate_pid
+#define TUNE pitch_rate_pid
 
 void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 {
@@ -55,7 +55,7 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 
 		if(cstate_p->swit == 3)
 		{
-			(*var_to_update) = old_value + cstate_p->knob;
+			(*var_to_update) = old_value + (cstate_p->knob/100);
 		}
 		old_state = cstate_p->swit;
 	#endif
