@@ -8,8 +8,10 @@
     #define GYRO_FUSION_FACTOR 0.98
 #endif
 
-void sensor_loop(void* not_required)
+void sensor_loop(void* state_pointer)
 {
+    state* state_p = ((state*)(state_pointer));
+
     milli_timer_init();
     int64_t now_time = get_milli_timer_ticks_count();
 
@@ -34,10 +36,10 @@ void sensor_loop(void* not_required)
     // initialize quaternions to 0 rotation 1 0 0 0
     quaternion oreo = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0};
 
-    State.acceleration_local = mpuInit->accl;
-    State.angular_velocity_local = mpuInit->gyro;
-    State.magnetic_heading_local = hmcdatasc.magn;
-    State.orientation = oreo;
+    state_p->acceleration_local = mpuInit->accl;
+    state_p->angular_velocity_local = mpuInit->gyro;
+    state_p->magnetic_heading_local = hmcdatasc.magn;
+    state_p->orientation = oreo;
 
     while(1)
     {
@@ -57,8 +59,8 @@ void sensor_loop(void* not_required)
             double time_delta_in_seconds = ((double)(now_time - last_mpu_read_time))/1000000;
             last_mpu_read_time = now_time;
 
-            State.angular_velocity_local = mpudatasc.gyro;
-            State.acceleration_local = mpudatasc.accl;
+            state_p->angular_velocity_local = mpudatasc.gyro;
+            state_p->acceleration_local = mpudatasc.accl;
 
             // gyroscope integration logic
             now_time = get_milli_timer_ticks_count();
@@ -78,7 +80,7 @@ void sensor_loop(void* not_required)
             slerp_quaternion(&oreo, &final_quat_gyro, GYRO_FUSION_FACTOR, &final_quat_accl_magn);
 
             // update the global state vector
-            State.orientation = oreo;
+            state_p->orientation = oreo;
         }
 
         // read hmc every 11 milliseconds
@@ -92,7 +94,7 @@ void sensor_loop(void* not_required)
             last_hmc_read_time = now_time;
 
             // update the global state vector
-            State.magnetic_heading_local = hmcdatasc.magn;
+            state_p->magnetic_heading_local = hmcdatasc.magn;
         }
 
         // check on ms5611 every 12 milliseconds
@@ -109,11 +111,11 @@ void sensor_loop(void* not_required)
 
                 // once we have got both the raw digital temperature and pressure values we can scale our data
                 scale_and_compensate_Barodata(&bdatasc);
-                if(State.altitude == -1)
+                if(isnan(state_p->altitude))
                 {
-                    State.altitude = bdatasc.altitude;
+                    state_p->altitude = bdatasc.altitude;
                 }
-                State.altitude = State.altitude * 0.9 + bdatasc.altitude * 0.1;
+                state_p->altitude = state_p->altitude * 0.9 + bdatasc.altitude * 0.1;
 
                 request_Barodata_temperature();
             }

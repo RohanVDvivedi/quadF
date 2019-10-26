@@ -1,47 +1,30 @@
 #include<state.h>
 
-state State = {
-    .orientation = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0},
-    .angular_velocity_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
-    .acceleration_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
-    .altitude = -1,
-    .altitude_rate = 0.0,
-};
-
-channel_state cstate = {
-	.throttle = 0.0,
-	.yaw = 0.0,
-	.pitch = 0.0,
-	.roll = 0.0,
-	.swit = 0.0,
-	.knob = 0.0
-};
-
-void get_current_local_X_axis(vector* xl)
+void get_current_local_X_axis(state* st,vector* xl)
 {
 	vector X = {.xi = 1.0, .yj = 0.0, .zk = 0.0};
-	rotate_vector(xl, &(State.orientation), &X);
+	rotate_vector(xl, &(st->orientation), &X);
 }
 
-void get_current_local_Y_axis(vector* yl)
+void get_current_local_Y_axis(state* st, vector* yl)
 {
 	vector Y = {.xi = 0.0, .yj = 1.0, .zk = 0.0};
-	rotate_vector(yl, &(State.orientation), &Y);
+	rotate_vector(yl, &(st->orientation), &Y);
 }
 
-void get_current_local_Z_axis(vector* zl)
+void get_current_local_Z_axis(state* st, vector* zl)
 {
 	vector Z = {.xi = 0.0, .yj = 0.0, .zk = 1.0};
-	rotate_vector(zl, &(State.orientation), &Z);
+	rotate_vector(zl, &(st->orientation), &Z);
 }
 
-void get_absolute_rotation_angles_about_local_axis(vector* angles)
+void get_absolute_rotation_angles_about_local_axis(state* st, vector* angles)
 {
 	// get unit vectors about local axis, wrt to global axis
 	// the global axis is the initial position of the sensor board
-	vector xl;	get_current_local_X_axis(&xl);
-	vector yl;	get_current_local_Y_axis(&yl);
-	vector zl;	get_current_local_Z_axis(&zl);
+	vector xl;	get_current_local_X_axis(st, &xl);
+	vector yl;	get_current_local_Y_axis(st, &yl);
+	vector zl;	get_current_local_Z_axis(st, &zl);
 
 	double mag;
 	vector zero_v = {.xi = 0.0, .yj = 0.0, .zk = 0.0};
@@ -125,14 +108,14 @@ void get_absolute_rotation_angles_about_local_axis(vector* angles)
 	temp = zero_v;
 }
 
-void update_channel_state()
+void update_channel_state(channel_state* cstate)
 {
 	double channels_d[6];
 	get_channel_values_scaled(channels_d);
-	cstate.roll 		= channels_d[0];
-	cstate.pitch 		= channels_d[1];
-	cstate.throttle 	= channels_d[2];
-	cstate.yaw	 		= channels_d[3];
-	cstate.swit 		= (uint8_t)channels_d[4];
-	cstate.knob 		= channels_d[5];
+	cstate->roll 		= channels_d[0];
+	cstate->pitch 		= channels_d[1];
+	cstate->throttle 	= channels_d[2];
+	cstate->yaw	 		= channels_d[3];
+	cstate->swit 		= (uint8_t)channels_d[4];
+	cstate->knob 		= channels_d[5];
 }

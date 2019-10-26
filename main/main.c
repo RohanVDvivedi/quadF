@@ -19,38 +19,41 @@
 
 #define BLINK_GPIO 2
 
+state curr_state = {
+    .orientation = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0},
+    .angular_velocity_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
+    .acceleration_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
+    .altitude = NAN,
+    .altitude_rate = 0.0,
+};
+
+channel_state chn_state = {
+    .throttle = 0.0,
+    .yaw = 0.0,
+    .pitch = 0.0,
+    .roll = 0.0,
+    .swit = 0.0,
+    .knob = 0.0
+};
+
 void app_main(void)
 {
-    //all_bldc_init();
+    TaskHandle_t sensorLoopHandle = NULL;
+    xTaskCreate(sensor_loop, "SENOR_LOOP", 4096, &curr_state, configMAX_PRIORITIES - 1, sensorLoopHandle);
+
+    // this will turn on all the bldc motors and set their min and max speed setting
+    all_bldc_init();
     
     channels_init();
 
-    gpio_pad_select_gpio(BLINK_GPIO);
-    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
-
-    TaskHandle_t sensorLoopHandle = NULL;
-    xTaskCreate(sensor_loop, "SENOR_LOOP", 4096, NULL, configMAX_PRIORITIES - 1, sensorLoopHandle);
-
     do
     {
-        gpio_set_level(BLINK_GPIO, 1);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-        gpio_set_level(BLINK_GPIO, 0);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(1 / portTICK_PERIOD_MS);
 
-        update_channel_state();
-        printf("yaw = %lf \t pitch = %lf \t roll = %lf \t throttle %lf \t swit = %d \t knob = %lf \n\n", cstate.yaw, cstate.pitch, cstate.roll, cstate.throttle, cstate.swit, cstate.knob);
 
-        //quat_raw quat_r;
-        //get_unit_rotation_axis(&(quat_r.vectr), &(State.orientation));
-        //quat_r.theta = 2 * acos(State.orientation.sc) * 180 / M_PI;
-        //printf("%lf \t %lf \t %lf \t\t %lf\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
+        update_channel_state(&chn_state);
 
-        //vector angles = {0.0, 0.0, 0.0};
-        //get_absolute_rotation_angles_about_local_axis(&angles);
-        //printf("%lf \t %lf \t %lf\n\n", angles.xi, angles.yj, angles.zk);
 
-        //printf("%lf \t %lf \t %lf\n\n", State.magnetic_heading_local.xi, State.magnetic_heading_local.yj, State.magnetic_heading_local.zk);
     }
     while(1);
 

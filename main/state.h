@@ -38,17 +38,23 @@ struct channel_state
 	double knob;
 };
 
-extern state State;
-extern channel_state cstate;
+typedef struct corrections corrections;
+struct corrections
+{
+	double yaw_corr;
+	double pitch_corr;
+	double roll_corr;
+	double altitude_corr;
+};
 
-void get_current_local_X_axis(vector* xl);
+void get_current_local_X_axis(state* st, vector* xl);
 
-void get_current_local_Y_axis(vector* yl);
+void get_current_local_Y_axis(state* st, vector* yl);
 
-void get_current_local_Z_axis(vector* zl);
+void get_current_local_Z_axis(state* st, vector* zl);
 
-void get_absolute_rotation_angles_about_local_axis(vector* angles);
+void get_absolute_rotation_angles_about_local_axis(state* st, vector* angles);
 
-void update_channel_state();
+void update_channel_state(channel_state* cstate);
 
 #endif
