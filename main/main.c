@@ -3,7 +3,8 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 
-
+// this provides you the mail sensor loop of the flight controller
+#include<sensor_loop.h>
 
 // this is where we get out rc receivers first 4 channels input data from
 #include<rc_receiver.h>
@@ -18,13 +19,11 @@
 
 #define BLINK_GPIO 2
 
-void sensor_loop(void* not_required);
-
 void app_main(void)
 {
     //all_bldc_init();
     
-    //channels_init();
+    channels_init();
 
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
@@ -39,14 +38,17 @@ void app_main(void)
         gpio_set_level(BLINK_GPIO, 0);
         vTaskDelay(100 / portTICK_PERIOD_MS);
 
-        quat_raw quat_r;
-        get_unit_rotation_axis(&(quat_r.vectr), &(State.orientation));
-        quat_r.theta = 2 * acos(State.orientation.sc) * 180 / M_PI;
-        printf("%lf \t %lf \t %lf \t\t %lf\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
+        update_channel_state();
+        printf("yaw = %lf \t pitch = %lf \t roll = %lf \t throttle %lf \t swit = %d \t knob = %lf \n\n", cstate.yaw, cstate.pitch, cstate.roll, cstate.throttle, cstate.swit, cstate.knob);
 
-        vector angles = {0.0, 0.0, 0.0};
-        get_absolute_rotation_angles_about_local_axis(&angles);
-        printf("%lf \t %lf \t %lf\n\n", angles.xi, angles.yj, angles.zk);
+        //quat_raw quat_r;
+        //get_unit_rotation_axis(&(quat_r.vectr), &(State.orientation));
+        //quat_r.theta = 2 * acos(State.orientation.sc) * 180 / M_PI;
+        //printf("%lf \t %lf \t %lf \t\t %lf\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
+
+        //vector angles = {0.0, 0.0, 0.0};
+        //get_absolute_rotation_angles_about_local_axis(&angles);
+        //printf("%lf \t %lf \t %lf\n\n", angles.xi, angles.yj, angles.zk);
 
         //printf("%lf \t %lf \t %lf\n\n", State.magnetic_heading_local.xi, State.magnetic_heading_local.yj, State.magnetic_heading_local.zk);
     }
@@ -57,5 +59,5 @@ void app_main(void)
         vTaskDelete(sensorLoopHandle);
     }
 
-    //channels_destroy();
+    channels_destroy();
 }

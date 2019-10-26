@@ -1,6 +1,7 @@
 #include<rc_receiver.h>
 
 static const uint16_t          channel_arr             [CHANNEL_COUNT] = CHANNEL_PINS_ARRAY;
+static const uint16_t          channel_purpose_arr     [CHANNEL_COUNT] = CHANNEL_PURPOSE_ARRAY;
 static uint8_t                 channel_nos             [CHANNEL_COUNT];
 static volatile uint64_t       channel_values_up_new   [CHANNEL_COUNT];
 static volatile uint64_t       channel_values_raw      [CHANNEL_COUNT];
@@ -54,8 +55,49 @@ esp_err_t get_channel_values(uint16_t* channel_values)
     for(uint8_t i = 0; i < CHANNEL_COUNT; i++)
     {
         channel_values[i] = channel_values_raw[i];
-        channel_values[i] = ((channel_values[i] < 999) ? 0 : (channel_values[i] - 1000));
-        if(err != ESP_FAIL && (channel_values[i] > 3000 || channel_values[i] < 500))
+        channel_values[i] = ((channel_values[i] <= 999) ? 0 : (channel_values[i] - 1000));
+        if(err != ESP_FAIL && channel_values[i] > 1100)
+        {
+            err = ESP_FAIL;
+        }
+    }
+    return err;
+}
+
+esp_err_t get_channel_values_scaled(double* channel_values_d)
+{
+    uint16_t channel_values[6];
+    esp_err_t err = get_channel_values(channel_values);
+    for(uint8_t i = 0; i < CHANNEL_COUNT; i++)
+    {
+        if(channel_purpose_arr[i] == KNOB)
+        {
+            channel_values_d[i] = channel_values[i];
+        }
+        else if(channel_purpose_arr[i] == SWITCH)
+        {
+            if(channel_values[i] > 750)
+            {
+                channel_values_d[i] = 3.0;
+            }
+            else if(channel_values[i] > 250)
+            {
+                channel_values_d[i] = 2.0;
+            }
+            else
+            {
+                channel_values_d[i] = 1.0;
+            }
+        }
+        else if(channel_purpose_arr[i] == ANGLE)
+        {
+            channel_values_d[i] = ((((double)channel_values[i])/1000) * 2 * MAX_ANGLE) - MAX_ANGLE;
+            if(channel_values_d[i] < 2.0 && channel_values_d[i] > -2.0)
+            {
+                channel_values_d[i] = 0.0;
+            }
+        }
+        else
         {
             err = ESP_FAIL;
         }
