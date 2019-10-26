@@ -46,7 +46,7 @@ void app_main(void)
 
         vector angles = {0.0, 0.0, 0.0};
         get_absolute_rotation_angles_about_local_axis(&angles);
-        //printf("%lf \t %lf \t %lf\n\n", angles.xi, angles.yj, angles.zk);
+        printf("%lf \t %lf \t %lf\n\n", angles.xi, angles.yj, angles.zk);
 
         //printf("%lf \t %lf \t %lf\n\n", State.magnetic_heading_local.xi, State.magnetic_heading_local.yj, State.magnetic_heading_local.zk);
     }

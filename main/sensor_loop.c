@@ -5,7 +5,7 @@
 #elif defined(ORIENTATION_ONLY_ACCL_MAGN)
     #define GYRO_FUSION_FACTOR 0.00
 #else
-    #define GYRO_FUSION_FACTOR 0.99
+    #define GYRO_FUSION_FACTOR 0.98
 #endif
 
 void sensor_loop(void* not_required)
