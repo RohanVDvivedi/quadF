@@ -3,22 +3,22 @@
 pid_state pitch_rate_pid = {
 	.constants = {
 		.Kp = 0.0,
-		.Ki = 0.0,
+		.Ki = 1.0,
 		.Kd = 0.0,
-		.Irange = 0.0
+		.Irange = 200.0
 	}
 };
 
 pid_state roll_rate_pid = {
 	.constants = {
 		.Kp = 0.0,
-		.Ki = 0.0,
+		.Ki = 1.0,
 		.Kd = 0.0,
-		.Irange = 0.0
+		.Irange = 200.0
 	}
-};;
+};
 
-#define TUNE pitch_rate_pid
+//#define TUNE pitch_rate_pid
 
 void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 {
@@ -65,9 +65,27 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 	rate_required.yj = cstate_p->pitch;
 
 	vector angular_rates = state_p->angular_velocity_local;
+	angular_rates.xi = fabs(angular_rates.xi) < 1.5 ? 0.0 : angular_rates.xi;
+	angular_rates.yj = fabs(angular_rates.yj) < 1.5 ? 0.0 : angular_rates.yj;
+	angular_rates.zk = fabs(angular_rates.zk) < 1.5 ? 0.0 : angular_rates.zk;
 
-	corr->yaw_corr = 0.0;
-	corr->pitch_corr = pid_update(&pitch_rate_pid, rate_required.xi, angular_rates.xi);
-	corr->roll_corr = pid_update(&roll_rate_pid, rate_required.xi, angular_rates.xi);
+	if(cstate_p->throttle < 100)
+	{
+		corr->roll_corr  = 0.0;
+		corr->pitch_corr = 0.0;
+		corr->yaw_corr   = 0.0;
+
+		if(cstate_p->throttle < 50)
+		{
+			pitch_rate_pid.accumulated_error = 0.0;
+			roll_rate_pid.accumulated_error = 0.0;
+		}
+	}
+	else
+	{
+		corr->roll_corr = pid_update(&roll_rate_pid, rate_required.xi, angular_rates.xi);
+		corr->pitch_corr  = pid_update(&pitch_rate_pid, rate_required.yj, angular_rates.yj);
+		corr->yaw_corr = 0.0;
+	}
 	corr->altitude_corr = cstate_p->throttle;
 }

@@ -75,7 +75,7 @@ void get_absolute_rotation_angles_about_local_axis(state* st, vector* angles)
 	{
 		temp.xi = yl.yj / mag;
 		temp.yj = -yl.xi / mag;
-		cross(&temp1, &xl, &temp);
+		cross(&temp1, &temp, &xl);
 		if(angle_between_vectors(&temp1, &yl) > 170)
 		{
 			multiply_scalar(&temp, &temp, -1);
