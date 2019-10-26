@@ -68,11 +68,13 @@ void sensor_loop(void* not_required)
             conjugate(&final_quat_accl_magn, &final_quat_accl_magn);
             if( isnan(final_quat_accl_magn.xi) || isnan(final_quat_accl_magn.yj) || isnan(final_quat_accl_magn.zk) || isnan(final_quat_accl_magn.sc) )
             {
+                printf("accl_magn quat failed\n");
                 final_quat_accl_magn = oreo;
             }
 
             if( isnan(final_quat_gyro.xi) || isnan(final_quat_gyro.yj) || isnan(final_quat_gyro.zk) || isnan(final_quat_gyro.sc) )
             {
+                printf("gyro quat failed\n");
                 final_quat_gyro = final_quat_accl_magn;
             }
 

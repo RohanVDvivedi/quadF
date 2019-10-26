@@ -225,14 +225,43 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	vector A;diff(&A, Af, Ai);
 	vector B;diff(&B, Bf, Bi);
 
-	double ybyz = - ( ( (A.zk * B.xi) - (A.xi * B.zk) ) / ( (A.yj * B.xi) - (A.xi * B.yj) ) );
-	double xbyy = - ( ( (A.yj * B.zk) - (A.zk * B.yj) ) / ( (A.xi * B.zk) - (A.zk * B.xi) ) );
-	double xbyz = - ( ( (A.zk * B.yj) - (A.yj * B.zk) ) / ( (A.xi * B.yj) - (A.yj * B.xi) ) );
+
+	double ybyz = 0.0;
+	if( ( (A.zk * B.xi) - (A.xi * B.zk) ) != 0.0 )
+	{
+		ybyz = - ( ( (A.zk * B.xi) - (A.xi * B.zk) ) / ( (A.yj * B.xi) - (A.xi * B.yj) ) );
+	}
+
+	double xbyy = 0.0;
+	if( ( (A.yj * B.zk) - (A.zk * B.yj) ) != 0.0 )
+	{
+		xbyy = - ( ( (A.yj * B.zk) - (A.zk * B.yj) ) / ( (A.xi * B.zk) - (A.zk * B.xi) ) );
+	}
+
+	double xbyz = 0.0;
+	if( ( (A.zk * B.yj) - (A.yj * B.zk) ) != 0.0 )
+	{
+		xbyz = - ( ( (A.zk * B.yj) - (A.yj * B.zk) ) / ( (A.xi * B.yj) - (A.yj * B.xi) ) );
+	}
 
 	quat_raw raw;
 	raw.vectr.zk = sqrt(1.0/(1.0 + (ybyz * ybyz) + (xbyz * xbyz)));
-	raw.vectr.yj = sqrt((ybyz * ybyz) / (1.0 + ((ybyz * ybyz) * (1.0 + (xbyy * xbyy)))));
-	raw.vectr.xi = sqrt((xbyy * xbyy * xbyz * xbyz)/((xbyy * xbyy) + (xbyz * xbyz) + (xbyy * xbyy * xbyz * xbyz)));
+	if(ybyz == 0)
+	{
+		raw.vectr.yj = 0.0;
+	}
+	else
+	{
+		raw.vectr.yj = sqrt((ybyz * ybyz) / (1.0 + ((ybyz * ybyz) * (1.0 + (xbyy * xbyy)))));
+	}
+	if(xbyy == 0 || xbyz == 0)
+	{
+		raw.vectr.xi = 0.0;
+	}
+	else
+	{
+		raw.vectr.xi = sqrt((xbyy * xbyy * xbyz * xbyz)/((xbyy * xbyy) + (xbyz * xbyz) + (xbyy * xbyy * xbyz * xbyz)));
+	}
 
 	if(xbyy < 0)
 	{
