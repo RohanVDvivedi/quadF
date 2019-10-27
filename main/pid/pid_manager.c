@@ -2,24 +2,24 @@
 
 pid_state pitch_rate_pid = {
 	.constants = {
-		.Kp = 0.0,
-		.Ki = 0.0,
-		.Kd = 0.0,
-		.Irange = 200.0
+		.Kp = 1.8,
+		.Ki = 0.04,
+		.Kd = 2.0,
+		.Irange = 100.0
 	}
 };
 
 pid_state roll_rate_pid = {
 	.constants = {
-		.Kp = 0.0,
-		.Ki = 0.0,
-		.Kd = 0.0,
-		.Irange = 200.0
+		.Kp = 1.8,
+		.Ki = 0.04,
+		.Kd = 2.0,
+		.Irange = 100.0
 	}
 };
 
 //#define ERASE_CONSTANTS
-#define TUNE roll_rate_pid
+//#define TUNE roll_rate_pid
 
 void get_or_map_pid_constants();
 void update_pid_constants(pid_state* pid);
@@ -32,9 +32,12 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 	if(pid_constants_uninitialized)
 	{
 		#if defined(ERASE_CONSTANTS)
+			printf("Erase and Rewrite constants from code\n");
 			erase_all_pid_constants();
 		#endif
 		get_or_map_pid_constants();
+		printf("Rr : %lf %lf %lf\n", roll_rate_pid.constants.Kp, roll_rate_pid.constants.Ki, roll_rate_pid.constants.Kd);
+		printf("Pr : %lf %lf %lf\n", pitch_rate_pid.constants.Kp, pitch_rate_pid.constants.Ki, pitch_rate_pid.constants.Kd);
 		pid_constants_uninitialized = 0;
 	}
 
