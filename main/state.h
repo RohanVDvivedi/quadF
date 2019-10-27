@@ -7,6 +7,9 @@
 typedef struct state state;
 struct state
 {
+	// sensor module will set this as 1, when we can start reading
+	uint8_t init;
+
 	// the quaternion rotation from the initial state
 	quaternion orientation;
 

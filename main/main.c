@@ -43,9 +43,16 @@ void app_main(void)
     
     channels_init();
 
+    state curr_state_t = curr_state;
+
+    while(curr_state_t.init == 0)
+    {
+        curr_state_t = curr_state;
+    }
+
     do
     {
-        vTaskDelay(50 / portTICK_PERIOD_MS);
+        vTaskDelay(5 / portTICK_PERIOD_MS);
 
         // read current sensor states
         state curr_state_t = curr_state;

@@ -18,10 +18,27 @@ pid_state roll_rate_pid = {
 	}
 };
 
-#define TUNE pitch_rate_pid
+//#define ERASE_CONSTANTS
+#define TUNE roll_rate_pid
+
+void get_or_map_pid_constants();
+void update_pid_constants(pid_state* pid);
+void close_persistent_mem();
+void erase_all_pid_constants();
 
 void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 {
+	static uint8_t pid_constants_uninitialized = 1;
+	if(pid_constants_uninitialized)
+	{
+		#if defined(ERASE_CONSTANTS)
+			erase_all_pid_constants();
+		#endif
+		get_or_map_pid_constants();
+		pid_constants_uninitialized = 0;
+	}
+
+
 	#if defined(TUNE)
 		static uint8_t old_state = 1;
 		static double old_value = 0.0;
@@ -51,6 +68,7 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 		else if(old_state == 3 && cstate_p->swit == 2)
 		{
 			// update the corresponding value in the eeprom
+			update_pid_constants(&TUNE);
 		}
 
 		if(cstate_p->swit == 3)
@@ -58,6 +76,8 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 			(*var_to_update) = old_value + (cstate_p->knob/100);
 		}
 		old_state = cstate_p->swit;
+	#else
+		close_persistent_mem();
 	#endif
 
 	vector rate_required;
@@ -88,4 +108,78 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 		corr->yaw_corr = 0.0;
 	}
 	corr->altitude_corr = cstate_p->throttle;
+}
+
+#include<nvs_flash.h>
+#include<nvs.h>
+
+nvs_handle_t nvs_h;
+
+#define KEY_NAMESPACE "PID_CONSTANTS"
+
+#define ROLL_RATE_CONSTANTS  "roll_rate_constants"
+#define PITCH_RATE_CONSTANTS "pitch_rate_constants"
+
+void init_persist_mem_if_not()
+{
+	static uint8_t init = 0;
+	if(init == 0)
+	{
+		nvs_open(KEY_NAMESPACE, NVS_READWRITE, &nvs_h);
+		init = 1;
+	}
+}
+
+// get_pid_consts_entry_if_present_else_create_empty_one_from_given_data
+uint8_t get_pid_consts_entry(char* key, pid_const* data_out)
+{
+	size_t len = sizeof(pid_const);
+	esp_err_t err = nvs_get_blob(nvs_h, key, data_out, &len);
+	if(err != ESP_OK)
+	{
+		nvs_set_blob(nvs_h, key, data_out, sizeof(pid_const));
+		return 1;
+	}
+	return 0;
+}
+
+void get_or_map_pid_constants()
+{
+	init_persist_mem_if_not();
+	int to_commit = 0;
+	to_commit |= get_pid_consts_entry(ROLL_RATE_CONSTANTS, &(roll_rate_pid.constants));
+	to_commit |= get_pid_consts_entry(PITCH_RATE_CONSTANTS, &(pitch_rate_pid.constants));
+	if(to_commit == 1)
+	{
+		nvs_commit(nvs_h);
+	}
+}
+
+void update_pid_consts_entry(char* key, pid_const* data_out)
+{
+	nvs_set_blob(nvs_h, key, data_out, sizeof(pid_const));
+	nvs_commit(nvs_h);
+}
+
+void update_pid_constants(pid_state* pid)
+{
+	init_persist_mem_if_not();
+	if(pid == &(pitch_rate_pid))
+	{
+		update_pid_consts_entry(PITCH_RATE_CONSTANTS, &(pitch_rate_pid.constants));
+	}
+	else if(pid == &(roll_rate_pid))
+	{
+		update_pid_consts_entry(ROLL_RATE_CONSTANTS, &(roll_rate_pid.constants));
+	}
+}
+
+void close_persistent_mem()
+{
+	nvs_close(nvs_h);
+}
+
+void erase_all_pid_constants()
+{
+	nvs_erase_all(nvs_h);
 }

@@ -41,6 +41,8 @@ void sensor_loop(void* state_pointer)
     state_p->magnetic_heading_local = hmcdatasc.magn;
     state_p->orientation = oreo;
 
+    state_p->init = 1;
+
     while(1)
     {
         now_time = get_milli_timer_ticks_count();
