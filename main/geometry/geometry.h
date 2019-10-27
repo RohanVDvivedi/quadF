@@ -33,6 +33,8 @@ struct quat_raw
 	vector vectr;
 };
 
+extern vector zero_vector;
+
 // C = A + B
 void sum(vector* C, vector* A, vector* B);
 

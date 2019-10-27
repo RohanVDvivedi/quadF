@@ -30,7 +30,7 @@ const HMCdatascaled* hmc_init()
     // magnetometer settings done
 
     // a small delay before we start reading the sensors
-    vTaskDelay(20 / portTICK_PERIOD_MS);
+    vTaskDelay(200 / portTICK_PERIOD_MS);
 
     for(uint16_t i = 0; i < 200; i++)
     {
@@ -39,7 +39,7 @@ const HMCdatascaled* hmc_init()
         initial.magn.xi += (datasc.magn.xi/200);
         initial.magn.yj += (datasc.magn.yj/200);
         initial.magn.zk += (datasc.magn.zk/200);
-        vTaskDelay(11 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 
     return &initial;

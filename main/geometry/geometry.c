@@ -1,5 +1,7 @@
 #include<geometry.h>
 
+vector zero_vector = {0.0, 0.0, 0.0};
+
 void sum(vector* C, vector* A, vector* B)
 {
 	C->xi = A->xi + B->xi;

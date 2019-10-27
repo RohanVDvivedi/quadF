@@ -48,7 +48,7 @@ const MPUdatascaled* mpu_init()
     i2c_write(MPU6050_ADDRESS, 0x1c, &data, 1);
 
     // a small delay before we start reading the sensors
-    vTaskDelay(20 / portTICK_PERIOD_MS);
+    vTaskDelay(200 / portTICK_PERIOD_MS);
 
     for(uint16_t i = 0; i < 500; i++)
     {
@@ -60,8 +60,13 @@ const MPUdatascaled* mpu_init()
         initial.gyro.xi += (datasc.gyro.xi/500);
         initial.gyro.yj += (datasc.gyro.yj/500);
         initial.gyro.zk += (datasc.gyro.zk/500);
-        vTaskDelay(2 / portTICK_PERIOD_MS);
+        vTaskDelay(1 / portTICK_PERIOD_MS);
     }
+    // for gyro the offsets are what it averagely reads in the beginning
+    offsets.gyro = initial.gyro;
+
+    // while we assume the system was initially at rest
+    initial.gyro = zero_vector;
 
     return &initial;
 }
@@ -95,9 +100,9 @@ esp_err_t get_scaled_MPUdata(MPUdatascaled* result)
     result->temp  = (((double)(data.temp)) / 340) + 36.53;
 
     // in dps, degrees per second => sensitivity = +/-250
-    result->gyro.xi = ((((double)(data.gyrox)) * 250.0) / 32768.0) - initial.gyro.xi;
-    result->gyro.yj = ((((double)(data.gyroy)) * 250.0) / 32768.0) - initial.gyro.yj;
-    result->gyro.zk = ((((double)(data.gyroz)) * 250.0) / 32768.0) - initial.gyro.zk;
+    result->gyro.xi = ((((double)(data.gyrox)) * 250.0) / 32768.0) - offsets.gyro.xi;
+    result->gyro.yj = ((((double)(data.gyroy)) * 250.0) / 32768.0) - offsets.gyro.yj;
+    result->gyro.zk = ((((double)(data.gyroz)) * 250.0) / 32768.0) - offsets.gyro.zk;
 
     return err;
 }

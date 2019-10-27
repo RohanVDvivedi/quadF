@@ -83,12 +83,12 @@ void app_main(void)
 
         vector angles;
         get_absolute_rotation_angles_about_local_axis(&(curr_state_t.orientation), &angles);
-        printf("R: %lf \t \t P: %lf\n", angles.xi, angles.yj);
+        //printf("R: %lf \t \t P: %lf\n", angles.xi, angles.yj);
 
-        //quat_raw quat_r;
-        //get_unit_rotation_axis(&(quat_r.vectr), &(curr_state_t.orientation));
-        //quat_r.theta = 2 * acos(curr_state_t.orientation.sc) * 180 / M_PI;
-        //printf("%lf \t %lf \t %lf \t\t %lf\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
+        quat_raw quat_r;
+        get_unit_rotation_axis(&(quat_r.vectr), &(curr_state_t.orientation));
+        quat_r.theta = 2 * acos(curr_state_t.orientation.sc) * 180 / M_PI;
+        printf("%lf \t %lf \t %lf \t\t %lf\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
     }
     while(1);
 
