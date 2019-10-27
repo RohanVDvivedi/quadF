@@ -80,6 +80,9 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 		close_persistent_mem();
 	#endif
 
+	printf("R => Kp : %lf, Ki : %lf, Kd : %lf\n", roll_rate_pid.constants.Kp, roll_rate_pid.constants.Ki, roll_rate_pid.constants.Kd);
+	printf("P => Kp : %lf, Ki : %lf, Kd : %lf\n", pitch_rate_pid.constants.Kp, pitch_rate_pid.constants.Ki, pitch_rate_pid.constants.Kd);
+
 	vector rate_required;
 	rate_required.xi = cstate_p->roll;
 	rate_required.yj = cstate_p->pitch;
@@ -117,14 +120,15 @@ nvs_handle_t nvs_h;
 
 #define KEY_NAMESPACE "PID_CONSTANTS"
 
-#define ROLL_RATE_CONSTANTS  "roll_rate_constants"
-#define PITCH_RATE_CONSTANTS "pitch_rate_constants"
+#define ROLL_RATE_CONSTANTS  "rolrat_const"
+#define PITCH_RATE_CONSTANTS "pitrat_const"
 
 void init_persist_mem_if_not()
 {
 	static uint8_t init = 0;
 	if(init == 0)
 	{
+		nvs_flash_init();
 		nvs_open(KEY_NAMESPACE, NVS_READWRITE, &nvs_h);
 		init = 1;
 	}
@@ -134,7 +138,7 @@ void init_persist_mem_if_not()
 uint8_t get_pid_consts_entry(char* key, pid_const* data_out)
 {
 	size_t len = sizeof(pid_const);
-	esp_err_t err = nvs_get_blob(nvs_h, key, data_out, &len);
+	nvs_get_blob(nvs_h, key, data_out, &len);
 	if(err != ESP_OK)
 	{
 		nvs_set_blob(nvs_h, key, data_out, sizeof(pid_const));
@@ -181,5 +185,6 @@ void close_persistent_mem()
 
 void erase_all_pid_constants()
 {
+	init_persist_mem_if_not();
 	nvs_erase_all(nvs_h);
 }
