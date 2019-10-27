@@ -19,7 +19,7 @@ pid_state roll_rate_pid = {
 };
 
 //#define ERASE_CONSTANTS
-//#define TUNE pitch_rate_pid
+#define TUNE roll_rate_pid
 
 void get_or_map_pid_constants();
 void update_pid_constants(pid_state* pid);

@@ -58,6 +58,7 @@ esp_err_t get_channel_values(uint16_t* channel_values)
         channel_values[i] = ((channel_values[i] <= 999) ? 0 : (channel_values[i] - 1000));
         if(err != ESP_FAIL && channel_values[i] > 1100)
         {
+            channel_values[i] = 0;
             err = ESP_FAIL;
         }
     }
