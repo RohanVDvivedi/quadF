@@ -42,6 +42,7 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 	#if defined(TUNE)
 		static uint8_t old_state = 1;
 		static double old_value = 0.0;
+		static double initial_value = 0.0;
 		static double* var_to_update = NULL;
 		// pick something up to update if 1->2
 		if(old_state == 1 && cstate_p->swit == 2)
@@ -63,6 +64,7 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 		else if(old_state == 2 && cstate_p->swit == 3)
 		{
 			old_value = (*var_to_update);
+			initial_value = (cstate_p->knob/100);
 		}
 		// update the value in the eeprom
 		else if(old_state == 3 && cstate_p->swit == 2)
@@ -73,7 +75,11 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 
 		if(cstate_p->swit == 3)
 		{
-			(*var_to_update) = old_value + (cstate_p->knob/100);
+			(*var_to_update) = old_value + ((cstate_p->knob/100) - initial_value);
+			if( (*var_to_update) < 0.0 )
+			{
+				(*var_to_update) = 0.0;
+			}
 		}
 		old_state = cstate_p->swit;
 	#else
