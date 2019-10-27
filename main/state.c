@@ -75,7 +75,7 @@ void get_absolute_rotation_angles_about_local_axis(state* st, vector* angles)
 	{
 		temp.xi = yl.yj / mag;
 		temp.yj = -yl.xi / mag;
-		cross(&temp1, &temp, &xl);
+		cross(&temp1, &xl, &temp);
 		if(angle_between_vectors(&temp1, &yl) > 170)
 		{
 			multiply_scalar(&temp, &temp, -1);
@@ -83,19 +83,19 @@ void get_absolute_rotation_angles_about_local_axis(state* st, vector* angles)
 		angles->yj = angle_between_vectors(&temp, &xl);
 		if(xl.zk > 0 && zl.zk > 0)
 		{
-			angles->yj = angles->yj;
+			angles->yj = -angles->yj;
 		}
 		else if(xl.zk < 0 && zl.zk < 0)
 		{
-			angles->yj = angles->yj - 180;
+			angles->yj = 180 - angles->yj;
 		}
 		else if(xl.zk < 0 && zl.zk > 0)
 		{
-			angles->yj = angles->yj - 180;
+			angles->yj = 180 - angles->yj;
 		}
 		else if(xl.zk > 0 && zl.zk < 0)
 		{
-			angles->yj = angles->yj;
+			angles->yj = -angles->yj;
 		}
 	}
 	else
