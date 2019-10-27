@@ -19,7 +19,7 @@ pid_state roll_rate_pid = {
 };
 
 //#define ERASE_CONSTANTS
-#define TUNE roll_rate_pid
+//#define TUNE pitch_rate_pid
 
 void get_or_map_pid_constants();
 void update_pid_constants(pid_state* pid);
@@ -79,9 +79,6 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 	#else
 		close_persistent_mem();
 	#endif
-
-	printf("R => Kp : %lf, Ki : %lf, Kd : %lf\n", roll_rate_pid.constants.Kp, roll_rate_pid.constants.Ki, roll_rate_pid.constants.Kd);
-	printf("P => Kp : %lf, Ki : %lf, Kd : %lf\n", pitch_rate_pid.constants.Kp, pitch_rate_pid.constants.Ki, pitch_rate_pid.constants.Kd);
 
 	vector rate_required;
 	rate_required.xi = cstate_p->roll;
