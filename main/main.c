@@ -52,7 +52,7 @@ void app_main(void)
 
     do
     {
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(4 / portTICK_PERIOD_MS);
 
         // read current sensor states
         state curr_state_t = curr_state;
