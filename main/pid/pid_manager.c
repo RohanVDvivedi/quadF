@@ -73,7 +73,7 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 			update_pid_constants(&TUNE);
 		}
 
-		if(cstate_p->swit == 3)
+		if(cstate_p->swit == 3 && var_to_update != NULL)
 		{
 			(*var_to_update) = old_value + ((cstate_p->knob/100) - initial_value);
 			if( (*var_to_update) < 0.0 )

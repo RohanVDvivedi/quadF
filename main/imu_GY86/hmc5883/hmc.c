@@ -32,14 +32,14 @@ const HMCdatascaled* hmc_init()
     // a small delay before we start reading the sensors
     vTaskDelay(20 / portTICK_PERIOD_MS);
 
-    for(uint16_t i = 0; i < 500; i++)
+    for(uint16_t i = 0; i < 200; i++)
     {
         HMCdatascaled datasc;
         get_scaled_HMCdata(&datasc);
-        initial.magn.xi += (datasc.magn.xi/500);
-        initial.magn.yj += (datasc.magn.yj/500);
-        initial.magn.zk += (datasc.magn.zk/500);
-        vTaskDelay(14 / portTICK_PERIOD_MS);
+        initial.magn.xi += (datasc.magn.xi/200);
+        initial.magn.yj += (datasc.magn.yj/200);
+        initial.magn.zk += (datasc.magn.zk/200);
+        vTaskDelay(11 / portTICK_PERIOD_MS);
     }
 
     return &initial;

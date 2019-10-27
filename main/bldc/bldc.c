@@ -4,11 +4,8 @@ void all_bldc_init()
 {
     #if defined(MOTOR_RANGE_SETUP)
         write_values_bldc(1000, 1000, 1000, 1000);
-
         vTaskDelay(4000 / portTICK_PERIOD_MS);
-
         write_values_bldc(0, 0, 0, 0);
-
         vTaskDelay(3000 / portTICK_PERIOD_MS);
     #else
         write_values_bldc(0, 0, 0, 0);

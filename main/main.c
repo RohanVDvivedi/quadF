@@ -16,7 +16,7 @@
 
 #define BLINK_GPIO 2
 
-volatile state curr_state = {
+state curr_state = {
     .orientation = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0},
     .angular_velocity_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
     .acceleration_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
@@ -41,7 +41,7 @@ void app_main(void)
     gpio_set_level(BLINK_GPIO, 1);
 
     TaskHandle_t sensorLoopHandle = NULL;
-    xTaskCreate(sensor_loop, "SENOR_LOOP", 4096, &curr_state, configMAX_PRIORITIES - 1, sensorLoopHandle);
+    xTaskCreate(sensor_loop, "SENOR_LOOP", 2048, &curr_state, configMAX_PRIORITIES - 1, sensorLoopHandle);
 
     // this will turn on all the bldc motors and set their min and max speed setting (this setting can be controller from bldc.h)
     all_bldc_init();
@@ -52,7 +52,8 @@ void app_main(void)
 
     while(curr_state_t.init == 0)
     {
-        curr_state_t = curr_state;
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+        curr_state_t = curr_state;printf("not ready\n");
     }
 
     gpio_set_level(BLINK_GPIO, 0);

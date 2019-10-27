@@ -60,7 +60,7 @@ const MPUdatascaled* mpu_init()
         initial.gyro.xi += (datasc.gyro.xi/500);
         initial.gyro.yj += (datasc.gyro.yj/500);
         initial.gyro.zk += (datasc.gyro.zk/500);
-        vTaskDelay(14 / portTICK_PERIOD_MS);
+        vTaskDelay(2 / portTICK_PERIOD_MS);
     }
 
     return &initial;
