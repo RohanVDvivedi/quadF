@@ -138,7 +138,7 @@ void init_persist_mem_if_not()
 uint8_t get_pid_consts_entry(char* key, pid_const* data_out)
 {
 	size_t len = sizeof(pid_const);
-	nvs_get_blob(nvs_h, key, data_out, &len);
+	esp_err_t err = nvs_get_blob(nvs_h, key, data_out, &len);
 	if(err != ESP_OK)
 	{
 		nvs_set_blob(nvs_h, key, data_out, sizeof(pid_const));

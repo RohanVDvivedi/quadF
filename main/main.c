@@ -16,7 +16,7 @@
 
 #define BLINK_GPIO 2
 
-state curr_state = {
+volatile state curr_state = {
     .orientation = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0},
     .angular_velocity_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
     .acceleration_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
