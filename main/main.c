@@ -3,6 +3,9 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
 // this provides you the mail sensor loop of the flight controller
 #include<sensor_loop.h>
 
@@ -33,6 +36,9 @@ channel_state chn_state = {
     .knob = 0.0
 };
 
+vector max = {0,0,0};
+vector min = {0,0,0};
+
 void app_main(void)
 {
     // stay away from the remote and dron give no control inputs while the gpio is on
@@ -61,7 +67,7 @@ void app_main(void)
 
     do
     {
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
 
         // read current sensor states
         state curr_state_t = curr_state;
@@ -76,6 +82,16 @@ void app_main(void)
         //printf("%lf \t %lf \t %lf \t %lf\n", corr.altitude_corr, corr.pitch_corr, corr.roll_corr, corr.yaw_corr);
 
         write_corrections_to_motors(&corr);
+
+        min.xi = MIN(min.xi, curr_state_t.magnetic_heading_local.xi);
+        min.yj = MIN(min.yj, curr_state_t.magnetic_heading_local.yj);
+        min.zk = MIN(min.zk, curr_state_t.magnetic_heading_local.zk);
+        //printf("min : %lf %lf %lf\n", min.xi, min.yj, min.zk);
+        max.xi = MAX(max.xi, curr_state_t.magnetic_heading_local.xi);
+        max.yj = MAX(max.yj, curr_state_t.magnetic_heading_local.yj);
+        max.zk = MAX(max.zk, curr_state_t.magnetic_heading_local.zk);
+        //printf("max : %lf %lf %lf\n\n", max.xi, max.yj, max.zk);
+        //printf("mag : %lf %lf %lf\n\n", curr_state_t.magnetic_heading_local.xi, curr_state_t.magnetic_heading_local.yj, curr_state_t.magnetic_heading_local.zk);
 
         //printf("yaw = %lf \t pitch = %lf \t roll = %lf \t throttle %lf \t swit = %d \t knob = %lf \n\n", chn_state.yaw, chn_state.pitch, chn_state.roll, chn_state.throttle, chn_state.swit, chn_state.knob);
 

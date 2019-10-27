@@ -9,7 +9,7 @@ struct HMCdata
 };
 
 // while offsets magnetometer values will help us get final rotation
-static HMCdatascaled offsets = {.magn = {.xi = 89.1, .yj = -130.6, .zk = -149.4}};
+static HMCdatascaled offsets = {.magn = {.xi = 82.84, .yj = -135.7, .zk = -19.78}};
 
 // while initial magnetometer values will help us get final rotation
 static HMCdatascaled initial = {.magn = {.xi = 0.0, .yj = 0.0, .zk = 0.0}};
@@ -62,9 +62,9 @@ esp_err_t get_scaled_HMCdata(HMCdatascaled* result)
     data.magnz = (data.magnz << 8) | ((data.magnz >> 8) & 0x00ff);
 
     // in mG, milli Gauss
-    result->magn.xi = (((double)(data.magnx)) * 0.92) - offsets.magn.xi;
-    result->magn.yj = (((double)(data.magny)) * 0.92) - offsets.magn.yj;
-    result->magn.zk = (((double)(data.magnz)) * 0.92) - offsets.magn.zk;
+    result->magn.xi = ((((double)(data.magnx)) * 0.92) - offsets.magn.xi)/747.1;
+    result->magn.yj = ((((double)(data.magny)) * 0.92) - offsets.magn.yj)/764.52;
+    result->magn.zk = ((((double)(data.magnz)) * 0.92) - offsets.magn.zk)/713;
 
     return err;
 }
