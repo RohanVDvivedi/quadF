@@ -23,6 +23,7 @@ state curr_state = {
     .orientation = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0},
     .angular_velocity_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
     .acceleration_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
+    .magnetic_heading_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
     .altitude = NAN,
     .altitude_rate = 0.0,
 };
@@ -35,9 +36,6 @@ channel_state chn_state = {
     .swit = 0.0,
     .knob = 0.0
 };
-
-vector max = {0,0,0};
-vector min = {0,0,0};
 
 void app_main(void)
 {
@@ -82,18 +80,6 @@ void app_main(void)
         //printf("%lf \t %lf \t %lf \t %lf\n", corr.altitude_corr, corr.pitch_corr, corr.roll_corr, corr.yaw_corr);
 
         write_corrections_to_motors(&corr);
-
-        min.xi = MIN(min.xi, curr_state_t.magnetic_heading_local.xi);
-        min.yj = MIN(min.yj, curr_state_t.magnetic_heading_local.yj);
-        min.zk = MIN(min.zk, curr_state_t.magnetic_heading_local.zk);
-        //printf("min : %lf %lf %lf\n", min.xi, min.yj, min.zk);
-        max.xi = MAX(max.xi, curr_state_t.magnetic_heading_local.xi);
-        max.yj = MAX(max.yj, curr_state_t.magnetic_heading_local.yj);
-        max.zk = MAX(max.zk, curr_state_t.magnetic_heading_local.zk);
-        //printf("max : %lf %lf %lf\n\n", max.xi, max.yj, max.zk);
-        //printf("mag : %lf %lf %lf\n\n", curr_state_t.magnetic_heading_local.xi, curr_state_t.magnetic_heading_local.yj, curr_state_t.magnetic_heading_local.zk);
-
-        //printf("yaw = %lf \t pitch = %lf \t roll = %lf \t throttle %lf \t swit = %d \t knob = %lf \n\n", chn_state.yaw, chn_state.pitch, chn_state.roll, chn_state.throttle, chn_state.swit, chn_state.knob);
 
         quat_raw quat_r;
         get_unit_rotation_axis(&(quat_r.vectr), &(curr_state_t.orientation));
