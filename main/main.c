@@ -45,7 +45,7 @@ void app_main(void)
     gpio_set_level(BLINK_GPIO, 1);
 
     TaskHandle_t sensorLoopHandle = NULL;
-    xTaskCreate(sensor_loop, "SENOR_LOOP", 2048, &curr_state, configMAX_PRIORITIES - 1, sensorLoopHandle);
+    xTaskCreate(sensor_loop, "SENOR_LOOP", 4096, &curr_state, configMAX_PRIORITIES - 1, sensorLoopHandle);
 
     // this will turn on all the bldc motors and set their min and max speed setting (this setting can be controller from bldc.h)
     all_bldc_init();

@@ -67,11 +67,11 @@ void sensor_loop(void* state_pointer)
             get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &oreo, &(mpudatasc.gyro), time_delta_in_seconds);
             quaternion quat_change;
             to_quaternion(&quat_change, &quat_raw_change);
-            quaternion final_quat_gyro;
+            quaternion final_quat_gyro = oreo;
             hamilton_product(&final_quat_gyro, &quat_change, &oreo);
 
             // accelerometer magnetometer logic
-            quaternion final_quat_accl_magn;
+            quaternion final_quat_accl_magn = oreo;
             get_quaternion_from_vectors_changes(&final_quat_accl_magn, &(state_p->acceleration_local), &(mpuInit->accl), &(state_p->magnetic_heading_local), &(hmcInit->magn));
             conjugate(&final_quat_accl_magn, &final_quat_accl_magn);
 

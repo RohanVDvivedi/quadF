@@ -258,100 +258,130 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	vector A;diff(&A, Af, Ai);
 	vector B;diff(&B, Bf, Bi);
 
+	double perUnitMagDiffA = magnitude_vector(&A)/magnitude_vector(Ai);
+	double perUnitMagDiffB = magnitude_vector(&B)/magnitude_vector(Bi);
 
-	double ybyz = 0.0;
-	if( ( (A.zk * B.xi) - (A.xi * B.zk) ) != 0.0 )
-	{
-		ybyz = - ( ( (A.zk * B.xi) - (A.xi * B.zk) ) / ( (A.yj * B.xi) - (A.xi * B.yj) ) );
-	}
-
-	double xbyy = 0.0;
-	if( ( (A.yj * B.zk) - (A.zk * B.yj) ) != 0.0 )
-	{
-		xbyy = - ( ( (A.yj * B.zk) - (A.zk * B.yj) ) / ( (A.xi * B.zk) - (A.zk * B.xi) ) );
-	}
-
-	double xbyz = 0.0;
-	if( ( (A.zk * B.yj) - (A.yj * B.zk) ) != 0.0 )
-	{
-		xbyz = - ( ( (A.zk * B.yj) - (A.yj * B.zk) ) / ( (A.xi * B.yj) - (A.yj * B.xi) ) );
-	}
-
+	// this is the raw quaternion change from the sensors
 	quat_raw raw;
-	raw.vectr.zk = sqrt(1.0/(1.0 + (ybyz * ybyz) + (xbyz * xbyz)));
-	if(ybyz == 0)
+
+	// if there is not change in magnitude of A, the rotation is probably in direction of Ai
+	if(perUnitMagDiffA <= 0.01 && perUnitMagDiffB > 0.01)
 	{
-		raw.vectr.yj = 0.0;
+		// axis from A
+		unit_vector(&(raw.vectr), Ai);
+		// rotation angle from B
+		vector Bip; vector Bfp;
+		perpendicular_component(&Bip, Bi, &(raw.vectr));
+		perpendicular_component(&Bfp, Bf, &(raw.vectr));
+		raw.theta = angle_between_vectors(&Bfp, &Bip);
 	}
+	// if there is not change in magnitude of A, the rotation is probably in direction of Bi
+	else if(perUnitMagDiffA > 0.01 && perUnitMagDiffB <= 0.01)
+	{
+		// axis from B
+		unit_vector(&(raw.vectr), Bi);
+		// rotation angle from A
+		vector Aip; vector Afp;
+		perpendicular_component(&Aip, Ai, &(raw.vectr));
+		perpendicular_component(&Afp, Af, &(raw.vectr));
+		raw.theta = angle_between_vectors(&Afp, &Aip);
+	}
+	// else we would have to fuse to figure out the axis of rotation
 	else
 	{
-		raw.vectr.yj = sqrt((ybyz * ybyz) / (1.0 + ((ybyz * ybyz) * (1.0 + (xbyy * xbyy)))));
+		double ybyz = 0.0;
+		if( ( (A.zk * B.xi) - (A.xi * B.zk) ) != 0.0 )
+		{
+			ybyz = - ( ( (A.zk * B.xi) - (A.xi * B.zk) ) / ( (A.yj * B.xi) - (A.xi * B.yj) ) );
+		}
+
+		double xbyy = 0.0;
+		if( ( (A.yj * B.zk) - (A.zk * B.yj) ) != 0.0 )
+		{
+			xbyy = - ( ( (A.yj * B.zk) - (A.zk * B.yj) ) / ( (A.xi * B.zk) - (A.zk * B.xi) ) );
+		}
+
+		double xbyz = 0.0;
+		if( ( (A.zk * B.yj) - (A.yj * B.zk) ) != 0.0 )
+		{
+			xbyz = - ( ( (A.zk * B.yj) - (A.yj * B.zk) ) / ( (A.xi * B.yj) - (A.yj * B.xi) ) );
+		}
+
+		raw.vectr.zk = sqrt(1.0/(1.0 + (ybyz * ybyz) + (xbyz * xbyz)));
+		if(ybyz == 0)
+		{
+			raw.vectr.yj = 0.0;
+		}
+		else
+		{
+			raw.vectr.yj = sqrt((ybyz * ybyz) / (1.0 + ((ybyz * ybyz) * (1.0 + (xbyy * xbyy)))));
+		}
+		if(xbyy == 0 || xbyz == 0)
+		{
+			raw.vectr.xi = 0.0;
+		}
+		else
+		{
+			raw.vectr.xi = sqrt((xbyy * xbyy * xbyz * xbyz)/((xbyy * xbyy) + (xbyz * xbyz) + (xbyy * xbyy * xbyz * xbyz)));
+		}
+
+		if(xbyy < 0)
+		{
+			raw.vectr.yj = -raw.vectr.yj;
+		}
+		if(xbyz < 0)
+		{
+			raw.vectr.zk = -raw.vectr.zk;
+		}
+
+		// find vector components perpendicuilar to raw.vectr
+		vector Aip; vector Afp;
+		perpendicular_component(&Aip, Ai, &(raw.vectr));
+		perpendicular_component(&Afp, Af, &(raw.vectr));
+		vector Bip; vector Bfp;
+		perpendicular_component(&Bip, Bi, &(raw.vectr));
+		perpendicular_component(&Bfp, Bf, &(raw.vectr));
+
+		// this is the vecotor in same or opposite direction of raw.vectr
+		vector AipCrossAfp;
+		cross(&AipCrossAfp, &Aip, &Afp);
+		double angle_AipCrossAfp_raw = angle_between_vectors(&AipCrossAfp, &(raw.vectr));
+		double raw_vectr_sign_inversion_required_a = angle_AipCrossAfp_raw > 170 ? -1 : 1;
+
+		// this is the vecotor in same or opposite direction of raw.vectr
+		vector BipCrossBfp;
+		cross(&BipCrossBfp, &Bip, &Bfp);
+		double angle_BipCrossBfp_raw = angle_between_vectors(&BipCrossBfp, &(raw.vectr));
+		double raw_vectr_sign_inversion_required_b = angle_BipCrossBfp_raw > 170 ? -1 : 1;
+
+		// find per unit change perpendicular change difference
+		// higher this value higher is the accuracy of the result angle from that vector sensor
+		vector Aperp_mag_diff; diff(&Aperp_mag_diff, &Afp, &Aip);
+		vector Bperp_mag_diff; diff(&Bperp_mag_diff, &Bfp, &Bip);
+		double factorA = magnitude_vector(&Aperp_mag_diff)/magnitude_vector(Ai);
+		double factorB = magnitude_vector(&Bperp_mag_diff)/magnitude_vector(Bi);
+
+		// use the factors
+		if(factorA > factorB)
+		{
+			multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_a);
+		}
+		else
+		{
+			multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_b);
+		}
+
+		// exponentially scale them, to find probalistically the single better angle
+		factorA = pow(2.718, 1 + factorA*3.0);
+		factorB = pow(2.718, 1 + factorB*3.0);
+		factorA = factorA / (factorA + factorB);
+		factorB = 1 - factorA;
+
+		double angle_by_A = angle_between_vectors(&Afp, &Aip);
+		double angle_by_B = angle_between_vectors(&Bfp, &Bip);
+
+		raw.theta = factorA * angle_by_A + factorB * angle_by_B;
 	}
-	if(xbyy == 0 || xbyz == 0)
-	{
-		raw.vectr.xi = 0.0;
-	}
-	else
-	{
-		raw.vectr.xi = sqrt((xbyy * xbyy * xbyz * xbyz)/((xbyy * xbyy) + (xbyz * xbyz) + (xbyy * xbyy * xbyz * xbyz)));
-	}
-
-	if(xbyy < 0)
-	{
-		raw.vectr.yj = -raw.vectr.yj;
-	}
-	if(xbyz < 0)
-	{
-		raw.vectr.zk = -raw.vectr.zk;
-	}
-
-	// find vector components perpendicuilar to raw.vectr
-	vector Aip; vector Afp;
-	perpendicular_component(&Aip, Ai, &(raw.vectr));
-	perpendicular_component(&Afp, Af, &(raw.vectr));
-	vector Bip; vector Bfp;
-	perpendicular_component(&Bip, Bi, &(raw.vectr));
-	perpendicular_component(&Bfp, Bf, &(raw.vectr));
-
-	// this is the vecotor in same or opposite direction of raw.vectr
-	vector AipCrossAfp;
-	cross(&AipCrossAfp, &Aip, &Afp);
-	double angle_AipCrossAfp_raw = angle_between_vectors(&AipCrossAfp, &(raw.vectr));
-	double raw_vectr_sign_inversion_required_a = angle_AipCrossAfp_raw > 170 ? -1 : 1;
-
-	// this is the vecotor in same or opposite direction of raw.vectr
-	vector BipCrossBfp;
-	cross(&BipCrossBfp, &Bip, &Bfp);
-	double angle_BipCrossBfp_raw = angle_between_vectors(&BipCrossBfp, &(raw.vectr));
-	double raw_vectr_sign_inversion_required_b = angle_BipCrossBfp_raw > 170 ? -1 : 1;
-
-	// find per unit change perpendicular change difference
-	// higher this value higher is the accuracy of the result angle from that vector sensor
-	vector Aperp_mag_diff; diff(&Aperp_mag_diff, &Afp, &Aip);
-	vector Bperp_mag_diff; diff(&Bperp_mag_diff, &Bfp, &Bip);
-	double factorA = magnitude_vector(&Aperp_mag_diff)/magnitude_vector(Ai);
-	double factorB = magnitude_vector(&Bperp_mag_diff)/magnitude_vector(Bi);
-
-	// use the factors
-	if(factorA > factorB)
-	{
-		multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_a);
-	}
-	else
-	{
-		multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_b);
-	}
-
-	// exponentially scale them, to find probalistically the single better angle
-	factorA = pow(2.718, 1 + factorA*3.0);
-	factorB = pow(2.718, 1 + factorB*3.0);
-	factorA = factorA / (factorA + factorB);
-	factorB = 1 - factorA;
-
-	double angle_by_A = angle_between_vectors(&Afp, &Aip);
-	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
-
-	raw.theta = factorA * angle_by_A + factorB * angle_by_B;
 
 	to_quaternion(quat, &raw);
 }
