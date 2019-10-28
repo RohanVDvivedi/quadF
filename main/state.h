@@ -22,6 +22,12 @@ struct state
 	// magnetic heading of earth wrt local axis
 	vector magnetic_heading_local;
 
+	// angle of required to rotate about X axis, for Y axis to be parallel to horizon
+	double abs_roll;
+
+	// angle of required to rotate about Y axis, for X axis to be parallel to horizon
+	double abs_pitch;
+
 	// altitude from the ground
 	double altitude;
 
@@ -56,7 +62,7 @@ void get_current_local_Y_axis(state* st, vector* yl);
 
 void get_current_local_Z_axis(state* st, vector* zl);
 
-void get_absolute_rotation_angles_about_local_axis(state* st, vector* angles);
+void get_absolute_rotation_angles_about_local_axis(state* st);
 
 void update_channel_state(channel_state* cstate);
 

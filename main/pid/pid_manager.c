@@ -90,8 +90,8 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 	#endif
 
 	vector rate_required;
-	rate_required.xi = cstate_p->roll;
-	rate_required.yj = cstate_p->pitch;
+	rate_required.xi = 2.5 * (cstate_p->roll - state_p->abs_roll);
+	rate_required.yj = 2.5 * (cstate_p->pitch - state_p->abs_roll);
 
 	vector angular_rates = state_p->angular_velocity_local;
 	angular_rates.xi = fabs(angular_rates.xi) < 1.5 ? 0.0 : angular_rates.xi;

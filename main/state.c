@@ -18,7 +18,7 @@ void get_current_local_Z_axis(state* st, vector* zl)
 	rotate_vector(zl, &(st->orientation), &Z);
 }
 
-void get_absolute_rotation_angles_about_local_axis(state* st, vector* angles)
+void get_absolute_rotation_angles_about_local_axis(state* st)
 {
 	// get unit vectors about local axis, wrt to global axis
 	// the global axis is the initial position of the sensor board
@@ -44,27 +44,27 @@ void get_absolute_rotation_angles_about_local_axis(state* st, vector* angles)
 		{
 			multiply_scalar(&temp, &temp, -1);
 		}
-		angles->xi = angle_between_vectors(&temp, &yl);
+		st->abs_roll = angle_between_vectors(&temp, &yl);
 		if(yl.zk > 0 && zl.zk > 0)
 		{
-			angles->xi = angles->xi;
+			st->abs_roll = st->abs_roll;
 		}
 		else if(yl.zk < 0 && zl.zk < 0)
 		{
-			angles->xi = angles->xi - 180;
+			st->abs_roll = st->abs_roll - 180;
 		}
 		else if(yl.zk < 0 && zl.zk > 0)
 		{
-			angles->xi = angles->xi - 180;
+			st->abs_roll = st->abs_roll - 180;
 		}
 		else if(yl.zk > 0 && zl.zk < 0)
 		{
-			angles->xi = angles->xi;
+			st->abs_roll = st->abs_roll;
 		}
 	}
 	else
 	{
-		angles->xi = NAN;
+		st->abs_roll = NAN;
 	}
 
 	// ABSOLUTE pitch calculation
@@ -80,32 +80,28 @@ void get_absolute_rotation_angles_about_local_axis(state* st, vector* angles)
 		{
 			multiply_scalar(&temp, &temp, -1);
 		}
-		angles->yj = angle_between_vectors(&temp, &xl);
+		st->abs_pitch = angle_between_vectors(&temp, &xl);
 		if(xl.zk > 0 && zl.zk > 0)
 		{
-			angles->yj = -angles->yj;
+			st->abs_pitch = -st->abs_pitch;
 		}
 		else if(xl.zk < 0 && zl.zk < 0)
 		{
-			angles->yj = 180 - angles->yj;
+			st->abs_pitch = 180 - st->abs_pitch;
 		}
 		else if(xl.zk < 0 && zl.zk > 0)
 		{
-			angles->yj = 180 - angles->yj;
+			st->abs_pitch = 180 - st->abs_pitch;
 		}
 		else if(xl.zk > 0 && zl.zk < 0)
 		{
-			angles->yj = -angles->yj;
+			st->abs_pitch = -st->abs_pitch;
 		}
 	}
 	else
 	{
-		angles->yj = NAN;
+		st->abs_pitch = NAN;
 	}
-
-	// ABSOLUTE yaw calculation
-	// angles.zk = absolute yaw
-	temp = zero_v;
 }
 
 void update_channel_state(channel_state* cstate)
