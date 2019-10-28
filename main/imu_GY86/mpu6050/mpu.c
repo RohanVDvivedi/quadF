@@ -14,7 +14,7 @@ struct MPUdata
 
 // gyroscope steady state initial values may not be 0
 // while initial accelerometer values will help us get final rotation
-static MPUdatascaled offsets = {.accl = {.xi = 0.154, .yj = -0.005, .zk = -0.729}, .temp = 0.0, .gyro = {.xi = 0.0, .yj = 0.0, .zk = 0.0}};
+static MPUdatascaled offsets = {.accl = {.xi = 0.154, .yj = -0.005, .zk = -0.729}, .temp = 0.0, .gyro = {.xi = -2.16, .yj = 1.6, .zk = 0.21}};
 
 // gyroscope steady state initial values may not be 0
 // while initial accelerometer values will help us get final rotation
@@ -62,11 +62,6 @@ const MPUdatascaled* mpu_init()
         initial.gyro.zk += (datasc.gyro.zk/500);
         vTaskDelay(1 / portTICK_PERIOD_MS);
     }
-    // for gyro the offsets are what it averagely reads in the beginning
-    offsets.gyro = initial.gyro;
-
-    // while we assume the system was initially at rest
-    initial.gyro = zero_vector;
 
     return &initial;
 }
