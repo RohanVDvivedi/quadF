@@ -9,7 +9,7 @@ struct pid_const
 	double Kp;
 	double Ki;
 	double Kd;
-	double Irange;
+	double range;
 };
 
 typedef struct pid_state pid_state;

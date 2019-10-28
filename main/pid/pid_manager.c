@@ -2,19 +2,19 @@
 
 pid_state pitch_rate_pid = {
 	.constants = {
-		.Kp = 1.8,
-		.Ki = 0.04,
-		.Kd = 3.0,
-		.Irange = 100.0
+		.Kp = 1.7,
+		.Ki = 0.02,
+		.Kd = 1.0,
+		.range = 300.0
 	}
 };
 
 pid_state roll_rate_pid = {
 	.constants = {
-		.Kp = 1.8,
-		.Ki = 0.04,
-		.Kd = 3.0,
-		.Irange = 100.0
+		.Kp = 1.7,
+		.Ki = 0.02,
+		.Kd = 1.0,
+		.range = 300.0
 	}
 };
 
@@ -36,6 +36,8 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 			erase_all_pid_constants();
 		#endif
 		get_or_map_pid_constants();
+		pid_init(&pitch_rate_pid);
+		pid_init(&roll_rate_pid);
 		printf("Rr : %lf %lf %lf\n", roll_rate_pid.constants.Kp, roll_rate_pid.constants.Ki, roll_rate_pid.constants.Kd);
 		printf("Pr : %lf %lf %lf\n", pitch_rate_pid.constants.Kp, pitch_rate_pid.constants.Ki, pitch_rate_pid.constants.Kd);
 		pid_constants_uninitialized = 0;
@@ -89,33 +91,23 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 		close_persistent_mem();
 	#endif
 
-	//static int it = 0;
-	//if(it == 10)
-	//{
-		//printf("R: %lf %lf \t\t P: %lf %lf\n\n", state_p->abs_roll[0], state_p->abs_roll[1], state_p->abs_pitch[0], state_p->abs_pitch[1]);
-		//it = 0;
-	//}it++;
-
 	vector rate_required;
-	rate_required.xi = 2.5 * (cstate_p->roll - state_p->abs_roll[1]);
+	rate_required.xi = 2.5 * (cstate_p->roll  - state_p->abs_roll[1]);
 	rate_required.yj = 2.5 * (cstate_p->pitch - state_p->abs_pitch[1]);
 
 	vector angular_rates = state_p->angular_velocity_local;
-	angular_rates.xi = fabs(angular_rates.xi) < 1.5 ? 0.0 : angular_rates.xi;
-	angular_rates.yj = fabs(angular_rates.yj) < 1.5 ? 0.0 : angular_rates.yj;
-	angular_rates.zk = fabs(angular_rates.zk) < 1.5 ? 0.0 : angular_rates.zk;
+	angular_rates.xi = fabs(angular_rates.xi) < 0.5 ? 0.0 : angular_rates.xi;
+	angular_rates.yj = fabs(angular_rates.yj) < 0.5 ? 0.0 : angular_rates.yj;
+	angular_rates.zk = fabs(angular_rates.zk) < 0.5 ? 0.0 : angular_rates.zk;
 
-	if(cstate_p->throttle < 100)
+	if(cstate_p->throttle <= 100)
 	{
 		corr->roll_corr  = 0.0;
 		corr->pitch_corr = 0.0;
 		corr->yaw_corr   = 0.0;
 
-		if(cstate_p->throttle < 50)
-		{
-			pitch_rate_pid.accumulated_error = 0.0;
-			roll_rate_pid.accumulated_error = 0.0;
-		}
+		pid_init(&pitch_rate_pid);
+		pid_init(&roll_rate_pid);
 	}
 	else
 	{
