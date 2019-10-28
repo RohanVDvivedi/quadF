@@ -236,12 +236,13 @@ void slerp_quaternion(quaternion* Result, quaternion* A, double factorA, quatern
 	double sinet_1 = sin(thet * (1 - factorA));
 	double sine = sin(thet);
 
-	if(sine == 0)
+	if(sine <= 0.005)
 	{
-		Result->sc = (A_.sc * factorA + B_.sc * (1 - factorA))/sine;
-		Result->xi = (A_.xi * factorA + B_.xi * (1 - factorA))/sine;
-		Result->yj = (A_.yj * factorA + B_.yj * (1 - factorA))/sine;
-		Result->zk = (A_.zk * factorA + B_.zk * (1 - factorA))/sine;
+		double norm = sqrt(dot);
+		Result->sc = (A_.sc * factorA + B_.sc * (1 - factorA))/norm;
+		Result->xi = (A_.xi * factorA + B_.xi * (1 - factorA))/norm;
+		Result->yj = (A_.yj * factorA + B_.yj * (1 - factorA))/norm;
+		Result->zk = (A_.zk * factorA + B_.zk * (1 - factorA))/norm;
 	}
 	else
 	{
@@ -324,16 +325,15 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	double angle_BipCrossBfp_raw = angle_between_vectors(&BipCrossBfp, &(raw.vectr));
 	double raw_vectr_sign_inversion_required_b = angle_BipCrossBfp_raw > 170 ? -1 : 1;
 
-	// the difference betwen the angle between final vetcor and rotation vecotr specifies which
-	// of A or B vecotr to use in finding the final value od anle
-	// closer this is to 0, more the accuracy, by taking the calculation from that vector
-	double angle_raw_vectr_Af_90 = angle_between_vectors(Af, &(raw.vectr));
-	double angle_raw_vectr_Bf_90 = angle_between_vectors(Bf, &(raw.vectr));
-	angle_raw_vectr_Af_90 = ((angle_raw_vectr_Af_90 > 90) ? (180 - angle_raw_vectr_Af_90) : angle_raw_vectr_Af_90);
-	angle_raw_vectr_Bf_90 = ((angle_raw_vectr_Bf_90 > 90) ? (180 - angle_raw_vectr_Bf_90) : angle_raw_vectr_Bf_90);
+	// find per unit change perpendicular change difference
+	// higher this value higher is the accuracy of the result angle from that vector sensor
+	vector Aperp_mag_diff; diff(&Aperp_mag_diff, &Afp, &Aip);
+	vector Bperp_mag_diff; diff(&Bperp_mag_diff, &Bfp, &Bip);
+	double factorA = magnitude_vector(&Aperp_mag_diff)/magnitude_vector(Ai);
+	double factorB = magnitude_vector(&Bperp_mag_diff)/magnitude_vector(Bi);
 
-	// else use the one whose angle with rotation axis is closer to 90
-	if(angle_raw_vectr_Af_90 > angle_raw_vectr_Bf_90)
+	// use the factors
+	if(factorA > factorB)
 	{
 		multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_a);
 	}
@@ -342,13 +342,14 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 		multiply_scalar(&(raw.vectr), &(raw.vectr), raw_vectr_sign_inversion_required_b);
 	}
 
-	double angle_by_A = angle_between_vectors(&Afp, &Aip);
-	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
-
-	double factorA = pow(2.718, 1 + angle_raw_vectr_Af_90/3);
-	double factorB = pow(2.718, 1 + angle_raw_vectr_Bf_90/3);
+	// exponentially scale them, to find probalistically the single better angle
+	factorA = pow(2.718, 1 + factorA*3.0);
+	factorB = pow(2.718, 1 + factorB*3.0);
 	factorA = factorA / (factorA + factorB);
 	factorB = 1 - factorA;
+
+	double angle_by_A = angle_between_vectors(&Afp, &Aip);
+	double angle_by_B = angle_between_vectors(&Bfp, &Bip);
 
 	raw.theta = factorA * angle_by_A + factorB * angle_by_B;
 

@@ -59,7 +59,7 @@ void sensor_loop(void* state_pointer)
             last_mpu_read_time = now_time;
 
             state_p->angular_velocity_local = mpudatasc.gyro;
-            update_vector(&(state_p->acceleration_local), &(mpudatasc.accl), 1.0);
+            update_vector(&(state_p->acceleration_local), &(mpudatasc.accl), 0.1);
 
             // gyroscope integration logic
             now_time = get_milli_timer_ticks_count();
@@ -76,10 +76,10 @@ void sensor_loop(void* state_pointer)
             conjugate(&final_quat_accl_magn, &final_quat_accl_magn);
 
             // actual fusion logic called
-            slerp_quaternion(&oreo, &final_quat_gyro, GYRO_FUSION_FACTOR, &final_quat_accl_magn);
+            //slerp_quaternion(&oreo, &final_quat_gyro, GYRO_FUSION_FACTOR, &final_quat_accl_magn);
 
             // update the global state vector
-            state_p->orientation = oreo;
+            state_p->orientation = final_quat_accl_magn;//oreo;
         }
 
         // read hmc every 10 milliseconds
@@ -93,7 +93,7 @@ void sensor_loop(void* state_pointer)
             last_hmc_read_time = now_time;
 
             // update the global state vector
-            update_vector(&(state_p->magnetic_heading_local), &(hmcdatasc.magn), 1.0);
+            update_vector(&(state_p->magnetic_heading_local), &(hmcdatasc.magn), 0.1);
         }
 
         // check on ms5611 every 12 milliseconds
