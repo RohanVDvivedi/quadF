@@ -22,14 +22,12 @@ void sensor_loop(void* state_pointer)
     mpudatasc = (*mpuInit);
     now_time = get_milli_timer_ticks_count();
     uint64_t last_mpu_read_time = now_time;
-    vector low_passed_accl = mpudatasc.accl;
 
 	HMCdatascaled hmcdatasc;
     const HMCdatascaled* hmcInit = hmc_init();
     hmcdatasc = (*hmcInit);
     now_time = get_milli_timer_ticks_count();
     uint64_t last_hmc_read_time = now_time;
-    vector low_passed_magn = hmcdatasc.magn;
 
     Barodatascaled bdatasc;
     uint64_t last_ms5_read_time = now_time;
@@ -54,7 +52,6 @@ void sensor_loop(void* state_pointer)
         {
             // read mpu6050 data, and low pass accl
             get_scaled_MPUdata(&mpudatasc);
-            update_vector(&low_passed_accl, &(mpudatasc.accl), 0.008);
 
             // after reading mpu data, calculate time delta and update the last read time
             now_time = get_milli_timer_ticks_count();
@@ -62,7 +59,7 @@ void sensor_loop(void* state_pointer)
             last_mpu_read_time = now_time;
 
             state_p->angular_velocity_local = mpudatasc.gyro;
-            state_p->acceleration_local = mpudatasc.accl;
+            update_vector(&(state_p->acceleration_local), &(mpudatasc.accl), 1.0);
 
             // gyroscope integration logic
             now_time = get_milli_timer_ticks_count();
@@ -75,7 +72,7 @@ void sensor_loop(void* state_pointer)
 
             // accelerometer magnetometer logic
             quaternion final_quat_accl_magn;
-            get_quaternion_from_vectors_changes(&final_quat_accl_magn, &low_passed_accl, &(mpuInit->accl), &low_passed_magn, &(hmcInit->magn));
+            get_quaternion_from_vectors_changes(&final_quat_accl_magn, &(state_p->acceleration_local), &(mpuInit->accl), &(state_p->magnetic_heading_local), &(hmcInit->magn));
             conjugate(&final_quat_accl_magn, &final_quat_accl_magn);
 
             // actual fusion logic called
@@ -90,14 +87,13 @@ void sensor_loop(void* state_pointer)
         {
             // read hmc5883l data, and low pass magnetometer
             get_scaled_HMCdata(&hmcdatasc);
-            update_vector(&low_passed_magn, &(hmcdatasc.magn), 0.08);
 
             // update last read time
             now_time = get_milli_timer_ticks_count();
             last_hmc_read_time = now_time;
 
             // update the global state vector
-            state_p->magnetic_heading_local = hmcdatasc.magn;
+            update_vector(&(state_p->magnetic_heading_local), &(hmcdatasc.magn), 1.0);
         }
 
         // check on ms5611 every 12 milliseconds
