@@ -13,5 +13,7 @@ void write_corrections_to_motors(corrections* corr)
 	lb = left_back < 0 ? 0 : left_back;
 	rb = right_back < 0 ? 0 : right_back;
 
+	//printf("%u %u\n\n%u %u\n\n\n", lf, rf, lb, rb);
+
 	write_values_bldc(lf, rf, lb, rb);
 }

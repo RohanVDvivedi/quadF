@@ -39,6 +39,11 @@ channel_state chn_state = {
 
 void app_main(void)
 {
+    // this will turn on all the bldc motors and set their min and max speed setting (this setting can be controller from bldc.h)
+    all_bldc_init();
+
+    vTaskDelay(10000 / portTICK_PERIOD_MS);
+
     // stay away from the remote and dron give no control inputs while the gpio is on
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
@@ -48,7 +53,7 @@ void app_main(void)
     xTaskCreate(sensor_loop, "SENOR_LOOP", 4096, &curr_state, configMAX_PRIORITIES - 1, sensorLoopHandle);
 
     // this will turn on all the bldc motors and set their min and max speed setting (this setting can be controller from bldc.h)
-    all_bldc_init();
+    //all_bldc_init();
     
     channels_init();
 
