@@ -54,7 +54,7 @@ void sensor_loop(void* state_pointer)
         {
             // read mpu6050 data, and low pass accl
             get_scaled_MPUdata(&mpudatasc);
-            update_vector(&low_passed_accl, &(mpudatasc.accl), 0.005);
+            update_vector(&low_passed_accl, &(mpudatasc.accl), 0.008);
 
             // after reading mpu data, calculate time delta and update the last read time
             now_time = get_milli_timer_ticks_count();
@@ -85,12 +85,12 @@ void sensor_loop(void* state_pointer)
             state_p->orientation = oreo;
         }
 
-        // read hmc every 11 milliseconds
-        if(now_time - last_hmc_read_time >= 11000)
+        // read hmc every 10 milliseconds
+        if(now_time - last_hmc_read_time >= 10000)
         {
             // read hmc5883l data, and low pass magnetometer
             get_scaled_HMCdata(&hmcdatasc);
-            update_vector(&low_passed_magn, &(hmcdatasc.magn), 0.01);
+            update_vector(&low_passed_magn, &(hmcdatasc.magn), 0.08);
 
             // update last read time
             now_time = get_milli_timer_ticks_count();
