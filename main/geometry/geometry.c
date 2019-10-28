@@ -238,11 +238,17 @@ void slerp_quaternion(quaternion* Result, quaternion* A, double factorA, quatern
 
 	if(sine <= 0.005)
 	{
-		double norm = sqrt(dot);
-		Result->sc = (A_.sc * factorA + B_.sc * (1 - factorA))/norm;
-		Result->xi = (A_.xi * factorA + B_.xi * (1 - factorA))/norm;
-		Result->yj = (A_.yj * factorA + B_.yj * (1 - factorA))/norm;
-		Result->zk = (A_.zk * factorA + B_.zk * (1 - factorA))/norm;
+		Result->sc = (A_.sc * factorA + B_.sc * (1 - factorA));
+		Result->xi = (A_.xi * factorA + B_.xi * (1 - factorA));
+		Result->yj = (A_.yj * factorA + B_.yj * (1 - factorA));
+		Result->zk = (A_.zk * factorA + B_.zk * (1 - factorA));
+		double norm = (Result->sc * Result->sc + Result->xi * Result->xi + Result->yj * Result->yj + Result->zk * Result->zk);
+		Result->sc = Result->sc/norm;
+		Result->xi = Result->xi/norm;
+		Result->yj = Result->yj/norm;
+		Result->zk = Result->zk/norm;
+		Result->sc = Result->sc > 1.0 ? 1.0 : Result->sc;
+		Result->sc = Result->sc < -1.0 ? -1.0 : Result->sc;
 	}
 	else
 	{
