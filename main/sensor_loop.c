@@ -76,10 +76,10 @@ void sensor_loop(void* state_pointer)
             conjugate(&final_quat_accl_magn, &final_quat_accl_magn);
 
             // actual fusion logic called
-            //slerp_quaternion(&oreo, &final_quat_gyro, GYRO_FUSION_FACTOR, &final_quat_accl_magn);
+            slerp_quaternion(&oreo, &final_quat_gyro, GYRO_FUSION_FACTOR, &final_quat_accl_magn);
 
             // update the global state vector
-            state_p->orientation = final_quat_accl_magn;//oreo;
+            state_p->orientation = oreo;
         }
 
         // read hmc every 10 milliseconds
