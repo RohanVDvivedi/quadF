@@ -91,7 +91,7 @@ void app_main(void)
         quat_r.theta = 2 * acos(curr_state_t.orientation.sc) * 180 / M_PI;
         //printf("A: %lf, %lf, %lf\n", curr_state_t.acceleration_local.xi, curr_state_t.acceleration_local.yj, curr_state_t.acceleration_local.zk);
         //printf("M: %lf, %lf, %lf\n", curr_state_t.magnetic_heading_local.xi, curr_state_t.magnetic_heading_local.yj, curr_state_t.magnetic_heading_local.zk);
-        printf("%lf \t %lf \t %lf \t\t %lf => %lf\n\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta, curr_state_t.orientation.sc);
+        printf("%lf \t %lf \t %lf \t\t %lf\n\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
     }
     while(1);
 
