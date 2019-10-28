@@ -4,7 +4,7 @@ pid_state pitch_rate_pid = {
 	.constants = {
 		.Kp = 1.8,
 		.Ki = 0.04,
-		.Kd = 2.0,
+		.Kd = 3.0,
 		.Irange = 100.0
 	}
 };
@@ -13,7 +13,7 @@ pid_state roll_rate_pid = {
 	.constants = {
 		.Kp = 1.8,
 		.Ki = 0.04,
-		.Kd = 2.0,
+		.Kd = 3.0,
 		.Irange = 100.0
 	}
 };
