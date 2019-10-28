@@ -271,7 +271,7 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 	quat_raw raw;
 
 	// if there is not change in magnitude of A, the rotation is probably in direction of Ai
-	if(perUnitMagDiffA <= 0.01 && perUnitMagDiffB > 0.01)
+	if(perUnitMagDiffA <= 0.02 && perUnitMagDiffB > 0.02)
 	{
 		// axis from A
 		unit_vector(&(raw.vectr), Ai);
@@ -282,7 +282,7 @@ void get_quaternion_from_vectors_changes(quaternion* quat, vector* Af, vector* A
 		raw.theta = angle_between_vectors(&Bfp, &Bip);
 	}
 	// if there is not change in magnitude of A, the rotation is probably in direction of Bi
-	else if(perUnitMagDiffA > 0.01 && perUnitMagDiffB <= 0.01)
+	else if(perUnitMagDiffA > 0.02 && perUnitMagDiffB <= 0.02)
 	{
 		// axis from B
 		unit_vector(&(raw.vectr), Bi);
