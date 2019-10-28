@@ -61,6 +61,14 @@ void sensor_loop(void* state_pointer)
             state_p->angular_velocity_local = mpudatasc.gyro;
             update_vector(&(state_p->acceleration_local), &(mpudatasc.accl), 0.01);
 
+            // simply use gyro and raw accel to find absolute pitch and roll
+            state_p->abs_roll[1]
+                = (state_p->abs_roll[1]  + state_p->angular_velocity_local.xi * time_delta_in_seconds) * 0.98
+                + ((atan( mpudatasc.accl.yj/mpudatasc.accl.zk) - atan( mpuInit->accl.yj/mpuInit->accl.zk)) * 180 / M_PI) * 0.02;
+            state_p->abs_pitch[1]
+                = (state_p->abs_pitch[1] + state_p->angular_velocity_local.yj * time_delta_in_seconds) * 0.98
+                + ((atan(-mpudatasc.accl.xi/mpudatasc.accl.zk) - atan(-mpuInit->accl.xi/mpuInit->accl.zk)) * 180 / M_PI) * 0.02;
+
             // gyroscope integration logic
             now_time = get_milli_timer_ticks_count();
             quat_raw quat_raw_change;

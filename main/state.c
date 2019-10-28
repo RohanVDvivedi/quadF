@@ -44,27 +44,27 @@ void get_absolute_rotation_angles_about_local_axis(state* st)
 		{
 			multiply_scalar(&temp, &temp, -1);
 		}
-		st->abs_roll = angle_between_vectors(&temp, &yl);
+		st->abs_roll[0] = angle_between_vectors(&temp, &yl);
 		if(yl.zk > 0 && zl.zk > 0)
 		{
-			st->abs_roll = st->abs_roll;
+			st->abs_roll[0] = st->abs_roll[0];
 		}
 		else if(yl.zk < 0 && zl.zk < 0)
 		{
-			st->abs_roll = st->abs_roll - 180;
+			st->abs_roll[0] = st->abs_roll[0] - 180;
 		}
 		else if(yl.zk < 0 && zl.zk > 0)
 		{
-			st->abs_roll = st->abs_roll - 180;
+			st->abs_roll[0] = st->abs_roll[0] - 180;
 		}
 		else if(yl.zk > 0 && zl.zk < 0)
 		{
-			st->abs_roll = st->abs_roll;
+			st->abs_roll[0] = st->abs_roll[0];
 		}
 	}
 	else
 	{
-		st->abs_roll = NAN;
+		st->abs_roll[0] = NAN;
 	}
 
 	// ABSOLUTE pitch calculation
@@ -80,27 +80,27 @@ void get_absolute_rotation_angles_about_local_axis(state* st)
 		{
 			multiply_scalar(&temp, &temp, -1);
 		}
-		st->abs_pitch = angle_between_vectors(&temp, &xl);
+		st->abs_pitch[0] = angle_between_vectors(&temp, &xl);
 		if(xl.zk > 0 && zl.zk > 0)
 		{
-			st->abs_pitch = -st->abs_pitch;
+			st->abs_pitch[0] = -st->abs_pitch[0];
 		}
 		else if(xl.zk < 0 && zl.zk < 0)
 		{
-			st->abs_pitch = 180 - st->abs_pitch;
+			st->abs_pitch[0] = 180 - st->abs_pitch[0];
 		}
 		else if(xl.zk < 0 && zl.zk > 0)
 		{
-			st->abs_pitch = 180 - st->abs_pitch;
+			st->abs_pitch[0] = 180 - st->abs_pitch[0];
 		}
 		else if(xl.zk > 0 && zl.zk < 0)
 		{
-			st->abs_pitch = -st->abs_pitch;
+			st->abs_pitch[0] = -st->abs_pitch[0];
 		}
 	}
 	else
 	{
-		st->abs_pitch = NAN;
+		st->abs_pitch[0] = NAN;
 	}
 }
 

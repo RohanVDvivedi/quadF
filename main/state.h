@@ -23,10 +23,10 @@ struct state
 	vector magnetic_heading_local;
 
 	// angle of required to rotate about X axis, for Y axis to be parallel to horizon
-	double abs_roll;
+	double abs_roll[2];
 
 	// angle of required to rotate about Y axis, for X axis to be parallel to horizon
-	double abs_pitch;
+	double abs_pitch[2];
 
 	// altitude from the ground
 	double altitude;

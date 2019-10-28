@@ -24,6 +24,8 @@ state curr_state = {
     .angular_velocity_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
     .acceleration_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
     .magnetic_heading_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
+    .abs_roll = {0.0, 0.0},
+    .abs_pitch = {0.0, 0.0},
     .altitude = NAN,
     .altitude_rate = 0.0,
 };
@@ -42,7 +44,7 @@ void app_main(void)
     // this will turn on all the bldc motors and set their min and max speed setting (this setting can be controller from bldc.h)
     all_bldc_init();
 
-    vTaskDelay(10000 / portTICK_PERIOD_MS);
+    //vTaskDelay(10000 / portTICK_PERIOD_MS);
 
     // stay away from the remote and dron give no control inputs while the gpio is on
     gpio_pad_select_gpio(BLINK_GPIO);

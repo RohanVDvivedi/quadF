@@ -89,9 +89,16 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 		close_persistent_mem();
 	#endif
 
+	//static int it = 0;
+	//if(it == 10)
+	//{
+		//printf("R: %lf %lf \t\t P: %lf %lf\n\n", state_p->abs_roll[0], state_p->abs_roll[1], state_p->abs_pitch[0], state_p->abs_pitch[1]);
+		//it = 0;
+	//}it++;
+
 	vector rate_required;
-	rate_required.xi = 2.5 * (cstate_p->roll - state_p->abs_roll);
-	rate_required.yj = 2.5 * (cstate_p->pitch - state_p->abs_roll);
+	rate_required.xi = 2.5 * (cstate_p->roll - state_p->abs_roll[1]);
+	rate_required.yj = 2.5 * (cstate_p->pitch - state_p->abs_pitch[1]);
 
 	vector angular_rates = state_p->angular_velocity_local;
 	angular_rates.xi = fabs(angular_rates.xi) < 1.5 ? 0.0 : angular_rates.xi;
