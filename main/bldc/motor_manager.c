@@ -2,10 +2,10 @@
 
 void write_corrections_to_motors(corrections* corr)
 {
-	int left_front  = (int)(corr->altitude_corr + corr->pitch_corr - corr->roll_corr);
-	int right_front = (int)(corr->altitude_corr + corr->pitch_corr + corr->roll_corr);
-	int left_back   = (int)(corr->altitude_corr - corr->pitch_corr - corr->roll_corr);
-	int right_back  = (int)(corr->altitude_corr - corr->pitch_corr + corr->roll_corr);
+	int left_front  = (int)(corr->altitude_corr + corr->pitch_corr - corr->roll_corr - corr->yaw_corr);
+	int right_front = (int)(corr->altitude_corr + corr->pitch_corr + corr->roll_corr + corr->yaw_corr);
+	int left_back   = (int)(corr->altitude_corr - corr->pitch_corr - corr->roll_corr + corr->yaw_corr);
+	int right_back  = (int)(corr->altitude_corr - corr->pitch_corr + corr->roll_corr - corr->yaw_corr);
 
 	unsigned int lf,rf,lb,rb;
 	lf = left_front < 0 ? 0 : left_front;

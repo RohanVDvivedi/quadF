@@ -3,8 +3,8 @@
 pid_state pitch_rate_pid = {
 	.constants = {
 		.Kp = 1.7,
-		.Ki = 0.02,
-		.Kd = 1.0,
+		.Ki = 0.0,
+		.Kd = 0.9,
 		.range = 300.0
 	}
 };
@@ -12,8 +12,17 @@ pid_state pitch_rate_pid = {
 pid_state roll_rate_pid = {
 	.constants = {
 		.Kp = 1.7,
-		.Ki = 0.02,
-		.Kd = 1.0,
+		.Ki = 0.0,
+		.Kd = 0.9,
+		.range = 300.0
+	}
+};
+
+pid_state yaw_rate_pid = {
+	.constants = {
+		.Kp = 2.0,
+		.Ki = 0.01,
+		.Kd = 0.53,
 		.range = 300.0
 	}
 };
@@ -33,13 +42,15 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 	{
 		#if defined(ERASE_CONSTANTS)
 			printf("Erase and Rewrite constants from code\n");
-			erase_all_pid_constants();
+			//erase_all_pid_constants();
 		#endif
-		get_or_map_pid_constants();
+		//get_or_map_pid_constants();
 		pid_init(&pitch_rate_pid);
 		pid_init(&roll_rate_pid);
+		pid_init(&yaw_rate_pid);
 		printf("Rr : %lf %lf %lf\n", roll_rate_pid.constants.Kp, roll_rate_pid.constants.Ki, roll_rate_pid.constants.Kd);
 		printf("Pr : %lf %lf %lf\n", pitch_rate_pid.constants.Kp, pitch_rate_pid.constants.Ki, pitch_rate_pid.constants.Kd);
+		printf("Yr : %lf %lf %lf\n", yaw_rate_pid.constants.Kp, yaw_rate_pid.constants.Ki, yaw_rate_pid.constants.Kd);
 		pid_constants_uninitialized = 0;
 	}
 
@@ -88,12 +99,12 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 		}
 		old_state = cstate_p->swit;
 	#else
-		close_persistent_mem();
+		//close_persistent_mem();
 	#endif
 
 	vector rate_required;
-	rate_required.xi = 2.5 * (cstate_p->roll  - state_p->abs_roll[1]);
-	rate_required.yj = 2.5 * (cstate_p->pitch - state_p->abs_pitch[1]);
+	rate_required.xi = 3.0 * (cstate_p->roll  - state_p->abs_roll[1]);
+	rate_required.yj = 3.0 * (cstate_p->pitch - state_p->abs_pitch[1]);
 
 	vector angular_rates = state_p->angular_velocity_local;
 
@@ -105,12 +116,13 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 
 		pid_init(&pitch_rate_pid);
 		pid_init(&roll_rate_pid);
+		pid_init(&yaw_rate_pid);
 	}
 	else
 	{
 		corr->roll_corr = pid_update(&roll_rate_pid, rate_required.xi, angular_rates.xi);
 		corr->pitch_corr  = pid_update(&pitch_rate_pid, rate_required.yj, angular_rates.yj);
-		corr->yaw_corr = 0.0;
+		corr->yaw_corr = pid_update(&yaw_rate_pid, 0.0, angular_rates.zk);
 	}
 	corr->altitude_corr = cstate_p->throttle;
 
@@ -135,6 +147,7 @@ nvs_handle_t nvs_h;
 
 #define ROLL_RATE_CONSTANTS  "rolrat_const"
 #define PITCH_RATE_CONSTANTS "pitrat_const"
+#define YAW_RATE_CONSTANTS   "yawrat_const"
 
 void init_persist_mem_if_not()
 {
@@ -166,6 +179,7 @@ void get_or_map_pid_constants()
 	int to_commit = 0;
 	to_commit |= get_pid_consts_entry(ROLL_RATE_CONSTANTS, &(roll_rate_pid.constants));
 	to_commit |= get_pid_consts_entry(PITCH_RATE_CONSTANTS, &(pitch_rate_pid.constants));
+	to_commit |= get_pid_consts_entry(YAW_RATE_CONSTANTS, &(yaw_rate_pid.constants));
 	if(to_commit == 1)
 	{
 		nvs_commit(nvs_h);
@@ -188,6 +202,10 @@ void update_pid_constants(pid_state* pid)
 	else if(pid == &(roll_rate_pid))
 	{
 		update_pid_consts_entry(ROLL_RATE_CONSTANTS, &(roll_rate_pid.constants));
+	}
+	else if(pid == &(yaw_rate_pid))
+	{
+		update_pid_consts_entry(YAW_RATE_CONSTANTS, &(yaw_rate_pid.constants));
 	}
 }
 
