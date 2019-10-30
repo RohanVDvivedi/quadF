@@ -90,8 +90,8 @@ void sensor_loop(void* state_pointer)
             state_p->orientation = oreo;
         }
 
-        // read hmc every 10 milliseconds
-        if(now_time - last_hmc_read_time >= 10000)
+        // read hmc every 13.3 milliseconds
+        if(now_time - last_hmc_read_time >= 13340)
         {
             // read hmc5883l data, and low pass magnetometer
             get_scaled_HMCdata(&hmcdatasc);

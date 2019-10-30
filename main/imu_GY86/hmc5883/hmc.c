@@ -39,7 +39,7 @@ const HMCdatascaled* hmc_init()
         initial.magn.xi += (datasc.magn.xi/200);
         initial.magn.yj += (datasc.magn.yj/200);
         initial.magn.zk += (datasc.magn.zk/200);
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(14 / portTICK_PERIOD_MS);
     }
 
     return &initial;
