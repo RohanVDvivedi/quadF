@@ -59,7 +59,7 @@ void sensor_loop(void* state_pointer)
             last_mpu_read_time = now_time;
 
             state_p->angular_velocity_local = mpudatasc.gyro;
-            update_vector(&(state_p->acceleration_local), &(mpudatasc.accl), 0.01);
+            update_vector(&(state_p->acceleration_local), &(mpudatasc.accl), 1.0);
 
             // simply use gyro and raw accel to find absolute pitch and roll
             state_p->abs_roll[1]
@@ -101,7 +101,7 @@ void sensor_loop(void* state_pointer)
             last_hmc_read_time = now_time;
 
             // update the global state vector
-            update_vector(&(state_p->magnetic_heading_local), &(hmcdatasc.magn), 0.1);
+            update_vector(&(state_p->magnetic_heading_local), &(hmcdatasc.magn), 1.0);
         }
 
         // check on ms5611 every 12 milliseconds

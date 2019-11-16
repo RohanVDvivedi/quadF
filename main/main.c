@@ -70,6 +70,8 @@ void app_main(void)
     gpio_set_level(BLINK_GPIO, 0);
     // gpio off so now give controls
 
+    vector min = {0,0,0};
+    vector max = {0,0,0};
     do
     {
         vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -93,10 +95,21 @@ void app_main(void)
         //get_unit_rotation_axis(&(quat_r.vectr), &(curr_state_t.orientation));
         //quat_r.theta = 2 * acos(curr_state_t.orientation.sc) * 180 / M_PI;
         //printf("A: %lf, %lf, %lf\n", curr_state_t.acceleration_local.xi, curr_state_t.acceleration_local.yj, curr_state_t.acceleration_local.zk);
-        //printf("M: %lf, %lf, %lf\n\n", curr_state_t.magnetic_heading_local.xi, curr_state_t.magnetic_heading_local.yj, curr_state_t.magnetic_heading_local.zk);
+        //printf("M: %lf, %lf, %lf\n", curr_state_t.magnetic_heading_local.xi, curr_state_t.magnetic_heading_local.yj, curr_state_t.magnetic_heading_local.zk);
         //printf("G: %lf, %lf, %lf\n", curr_state_t.angular_velocity_local.xi, curr_state_t.angular_velocity_local.yj, curr_state_t.angular_velocity_local.zk);
         //printf("%lf \t %lf \t %lf \t\t %lf\n\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
         //printf("R: %lf %lf \t \t P: %lf %lf\n", curr_state_t.abs_roll[0], curr_state_t.abs_roll[1], curr_state_t.abs_pitch[0], curr_state_t.abs_pitch[1]);
+        min.xi = min.xi < curr_state_t.magnetic_heading_local.xi ? min.xi : curr_state_t.magnetic_heading_local.xi;
+        min.yj = min.yj < curr_state_t.magnetic_heading_local.yj ? min.yj : curr_state_t.magnetic_heading_local.yj;
+        min.zk = min.zk < curr_state_t.magnetic_heading_local.zk ? min.zk : curr_state_t.magnetic_heading_local.zk;
+        max.xi = max.xi > curr_state_t.magnetic_heading_local.xi ? max.xi : curr_state_t.magnetic_heading_local.xi;
+        max.yj = max.yj > curr_state_t.magnetic_heading_local.yj ? max.yj : curr_state_t.magnetic_heading_local.yj;
+        max.zk = max.zk > curr_state_t.magnetic_heading_local.zk ? max.zk : curr_state_t.magnetic_heading_local.zk;
+        static int i = 0;
+        if(i == 30){printf("min: %lf, %lf, %lf\n", min.xi, min.yj, min.zk);}
+        if(i == 30){printf("max: %lf, %lf, %lf\n", max.xi, max.yj, max.zk); i = 0;}
+        i++;
+        printf("M: \t %lf, \t %lf, \t %lf\n\n", curr_state_t.magnetic_heading_local.xi, curr_state_t.magnetic_heading_local.yj, curr_state_t.magnetic_heading_local.zk);
     }
     while(1);
 
