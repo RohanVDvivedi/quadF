@@ -26,7 +26,7 @@ void write_values_bldc(unsigned int left_front, unsigned int right_front, unsign
 
         // counter initial config we are going to use
         mcpwm_config_t pwm_config;
-        pwm_config.frequency = 50;
+        pwm_config.frequency = 400;
         pwm_config.cmpr_a = 0;
         pwm_config.cmpr_b = 0;
         pwm_config.counter_mode = MCPWM_UP_COUNTER;
