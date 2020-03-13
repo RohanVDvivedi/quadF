@@ -102,6 +102,7 @@ esp_err_t get_scaled_MPUdata(MPUdatascaled* result)
     return err;
 }
 
+// the result gets stored in the raw quaternion change
 void get_raw_quaternion_change_from_gyroscope(quat_raw* change, quaternion* previous_quaternion, vector* gyroscope, double time_in_seconds_since_last_reading)
 {
     // vectr is now the unit vector in the direction of rotation wrt to local current axis
@@ -110,7 +111,7 @@ void get_raw_quaternion_change_from_gyroscope(quat_raw* change, quaternion* prev
     // the angle of rotation since past reading of gyroscope
     change->theta = magnitude_vector(gyroscope) * time_in_seconds_since_last_reading;
 
-    // rotate vectr
+    // rotate vectr, about the conjugate of previous_quaternion, to make change to represent rotation wrt initial ground frame of reference
     quaternion reverse_rotation;
     conjugate(&reverse_rotation, previous_quaternion);
     vector rotation_axis;

@@ -13,7 +13,7 @@ void sensor_loop(void* state_pointer)
     state* state_p = ((state*)(state_pointer));
 
     micro_timer_init();
-    int64_t now_time = get_micro_timer_ticks_count();
+    uint64_t now_time = get_micro_timer_ticks_count();
 
     i2c_init();
 
