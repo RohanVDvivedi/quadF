@@ -7,8 +7,8 @@
 // this is where we get our scaled sensor readings from
 #include<gy86.h>
 
-// this timer is needed to understand whwn to do the calculation
-#include<millitimer.h>
+// this timer is needed to understand when to do the calculation
+#include<microtimer.h>
 
 // this is wehre we get a global state variable, which gets updated by the sensor logic
 #include<state.h>

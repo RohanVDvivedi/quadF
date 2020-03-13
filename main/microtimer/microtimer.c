@@ -1,12 +1,12 @@
-#include<millitimer.h>
+#include<microtimer.h>
 
-static volatile uint8_t millitimer_is_already_setup = 0;
+static volatile uint8_t microtimer_is_already_setup = 0;
 
-void milli_timer_init()
+void micro_timer_init()
 {
-	if( millitimer_is_already_setup == 0)
+	if( microtimer_is_already_setup == 0)
 	{
-		millitimer_is_already_setup = 1;
+		microtimer_is_already_setup = 1;
 
 		// setup  and start a timer, so the channels can themselves monitor their ppm signals
     	timer_config_t conf;
@@ -18,7 +18,7 @@ void milli_timer_init()
     }
 }
 
-uint64_t get_milli_timer_ticks_count()
+uint64_t get_micro_timer_ticks_count()
 {
 	uint64_t now_ticks;
     timer_get_counter_value(TIMER_GROUP_0, 0, &now_ticks);

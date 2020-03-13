@@ -8,7 +8,7 @@ static volatile uint64_t       channel_values_raw      [CHANNEL_COUNT];
 
 static void on_channel_edge(void* which_channel)
 {
-    uint64_t now_time = get_milli_timer_ticks_count();
+    uint64_t now_time = get_micro_timer_ticks_count();
 
     uint8_t channel_no = *((uint8_t*)(which_channel));
     uint8_t pin_no = channel_arr[channel_no];
@@ -27,8 +27,8 @@ static void on_channel_edge(void* which_channel)
 
 void channels_init()
 {
-    // start the millis timer, if is already not started
-    milli_timer_init();
+    // start the micro timer, if is already not started
+    micro_timer_init();
 
     // set the channel pins direction to input, and to interrupt on any edge
     for(uint8_t i = 0; i < CHANNEL_COUNT; i++)

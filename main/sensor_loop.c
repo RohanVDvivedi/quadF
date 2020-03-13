@@ -12,21 +12,21 @@ void sensor_loop(void* state_pointer)
 {
     state* state_p = ((state*)(state_pointer));
 
-    milli_timer_init();
-    int64_t now_time = get_milli_timer_ticks_count();
+    micro_timer_init();
+    int64_t now_time = get_micro_timer_ticks_count();
 
     i2c_init();
 
     MPUdatascaled mpudatasc;
     const MPUdatascaled* mpuInit = mpu_init();
     mpudatasc = (*mpuInit);
-    now_time = get_milli_timer_ticks_count();
+    now_time = get_micro_timer_ticks_count();
     uint64_t last_mpu_read_time = now_time;
 
 	HMCdatascaled hmcdatasc;
     const HMCdatascaled* hmcInit = hmc_init();
     hmcdatasc = (*hmcInit);
-    now_time = get_milli_timer_ticks_count();
+    now_time = get_micro_timer_ticks_count();
     uint64_t last_hmc_read_time = now_time;
 
     Barodatascaled bdatasc;
@@ -45,7 +45,7 @@ void sensor_loop(void* state_pointer)
 
     while(1)
     {
-        now_time = get_milli_timer_ticks_count();
+        now_time = get_micro_timer_ticks_count();
 
         // read mpu every millisecond
         if(now_time - last_mpu_read_time >= 1000)
@@ -54,7 +54,7 @@ void sensor_loop(void* state_pointer)
             get_scaled_MPUdata(&mpudatasc);
 
             // after reading mpu data, calculate time delta and update the last read time
-            now_time = get_milli_timer_ticks_count();
+            now_time = get_micro_timer_ticks_count();
             double time_delta_in_seconds = ((double)(now_time - last_mpu_read_time))/1000000;
             last_mpu_read_time = now_time;
 
@@ -70,7 +70,7 @@ void sensor_loop(void* state_pointer)
                 + ((atan(-mpudatasc.accl.xi/mpudatasc.accl.zk) - atan(-mpuInit->accl.xi/mpuInit->accl.zk)) * 180 / M_PI) * 0.02;
 
             // gyroscope integration logic
-            now_time = get_milli_timer_ticks_count();
+            now_time = get_micro_timer_ticks_count();
             quat_raw quat_raw_change;
             get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &oreo, &(mpudatasc.gyro), time_delta_in_seconds);
             quaternion quat_change;
@@ -97,7 +97,7 @@ void sensor_loop(void* state_pointer)
             get_scaled_HMCdata(&hmcdatasc);
 
             // update last read time
-            now_time = get_milli_timer_ticks_count();
+            now_time = get_micro_timer_ticks_count();
             last_hmc_read_time = now_time;
 
             // update the global state vector
@@ -130,7 +130,7 @@ void sensor_loop(void* state_pointer)
             {
                 request_Barodata_temperature();
             }
-            now_time = get_milli_timer_ticks_count();
+            now_time = get_micro_timer_ticks_count();
             last_ms5_read_time = now_time;
         }
     }

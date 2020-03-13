@@ -106,10 +106,10 @@ void app_main(void)
         max.yj = max.yj > curr_state_t.magnetic_heading_local.yj ? max.yj : curr_state_t.magnetic_heading_local.yj;
         max.zk = max.zk > curr_state_t.magnetic_heading_local.zk ? max.zk : curr_state_t.magnetic_heading_local.zk;
         static int i = 0;
-        if(i == 30){printf("min: %lf, %lf, %lf\n", min.xi, min.yj, min.zk);}
-        if(i == 30){printf("max: %lf, %lf, %lf\n", max.xi, max.yj, max.zk); i = 0;}
+        //if(i == 30){printf("min: %lf, %lf, %lf\n", min.xi, min.yj, min.zk);}
+        //if(i == 30){printf("max: %lf, %lf, %lf\n", max.xi, max.yj, max.zk); i = 0;}
         i++;
-        printf("M: \t %lf, \t %lf, \t %lf\n\n", curr_state_t.magnetic_heading_local.xi, curr_state_t.magnetic_heading_local.yj, curr_state_t.magnetic_heading_local.zk);
+        //printf("M: \t %lf, \t %lf, \t %lf\n\n", curr_state_t.magnetic_heading_local.xi, curr_state_t.magnetic_heading_local.yj, curr_state_t.magnetic_heading_local.zk);
     }
     while(1);
 

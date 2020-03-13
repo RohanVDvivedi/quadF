@@ -1,11 +1,9 @@
 #ifndef RC_RECEIVER_H
 #define RC_RECEIVER_H
 
-// for channel inputs
 #include "driver/gpio.h"
-#include "driver/timer.h"
 
-#include<millitimer.h>
+#include<microtimer.h>
 
 #define MAX_ANGLE 25
 
