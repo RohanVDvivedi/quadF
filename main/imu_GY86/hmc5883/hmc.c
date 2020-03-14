@@ -25,7 +25,7 @@ const HMCdatascaled* hmc_init()
     data = 0x20;
     i2c_write(HMC5883_ADDRESS, 0x01, &data, 1);
 
-    data = 0x01;
+    data = 0x00;
     i2c_write(HMC5883_ADDRESS, 0x02, &data, 1);
     // magnetometer settings done
 
