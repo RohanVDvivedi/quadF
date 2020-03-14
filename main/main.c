@@ -19,25 +19,9 @@
 
 #define BLINK_GPIO 2
 
-state curr_state = {
-    .orientation = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0},
-    .angular_velocity_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
-    .acceleration_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
-    .magnetic_heading_local = {.xi = 0.0, .yj = 0.0, .zk = 0.0},
-    .abs_roll = {0.0, 0.0},
-    .abs_pitch = {0.0, 0.0},
-    .altitude = NAN,
-    .altitude_rate = 0.0,
-};
+state curr_state;
 
-channel_state chn_state = {
-    .throttle = 0.0,
-    .yaw = 0.0,
-    .pitch = 0.0,
-    .roll = 0.0,
-    .swit = 0.0,
-    .knob = 0.0
-};
+channel_state chn_state;
 
 void app_main(void)
 {
@@ -70,11 +54,9 @@ void app_main(void)
     gpio_set_level(BLINK_GPIO, 0);
     // gpio off so now give controls
 
-    vector min = {0,0,0};
-    vector max = {0,0,0};
     do
     {
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
 
         // read current sensor states
         state curr_state_t = curr_state;
@@ -82,34 +64,16 @@ void app_main(void)
         // read current inputs from the user
         update_channel_state(&chn_state);
 
-        // find absolute roll and pitch
-        get_absolute_rotation_angles_about_local_axis(&(curr_state_t));
-
         corrections corr;
 
         get_corrections(&corr, &curr_state_t, &chn_state);
 
         write_corrections_to_motors(&corr);
 
-        //quat_raw quat_r;
-        //get_unit_rotation_axis(&(quat_r.vectr), &(curr_state_t.orientation));
-        //quat_r.theta = 2 * acos(curr_state_t.orientation.sc) * 180 / M_PI;
-        //printf("A: %lf, %lf, %lf\n", curr_state_t.acceleration_local.xi, curr_state_t.acceleration_local.yj, curr_state_t.acceleration_local.zk);
-        //printf("M: %lf, %lf, %lf\n", curr_state_t.magnetic_heading_local.xi, curr_state_t.magnetic_heading_local.yj, curr_state_t.magnetic_heading_local.zk);
-        //printf("G: %lf, %lf, %lf\n", curr_state_t.angular_velocity_local.xi, curr_state_t.angular_velocity_local.yj, curr_state_t.angular_velocity_local.zk);
-        //printf("%lf \t %lf \t %lf \t\t %lf\n\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
-        //printf("R: %lf %lf \t \t P: %lf %lf\n", curr_state_t.abs_roll[0], curr_state_t.abs_roll[1], curr_state_t.abs_pitch[0], curr_state_t.abs_pitch[1]);
-        min.xi = min.xi < curr_state_t.magnetic_heading_local.xi ? min.xi : curr_state_t.magnetic_heading_local.xi;
-        min.yj = min.yj < curr_state_t.magnetic_heading_local.yj ? min.yj : curr_state_t.magnetic_heading_local.yj;
-        min.zk = min.zk < curr_state_t.magnetic_heading_local.zk ? min.zk : curr_state_t.magnetic_heading_local.zk;
-        max.xi = max.xi > curr_state_t.magnetic_heading_local.xi ? max.xi : curr_state_t.magnetic_heading_local.xi;
-        max.yj = max.yj > curr_state_t.magnetic_heading_local.yj ? max.yj : curr_state_t.magnetic_heading_local.yj;
-        max.zk = max.zk > curr_state_t.magnetic_heading_local.zk ? max.zk : curr_state_t.magnetic_heading_local.zk;
-        static int i = 0;
-        //if(i == 30){printf("min: %lf, %lf, %lf\n", min.xi, min.yj, min.zk);}
-        //if(i == 30){printf("max: %lf, %lf, %lf\n", max.xi, max.yj, max.zk); i = 0;}
-        i++;
-        printf("M: \t %lf, \t %lf, \t %lf\n\n", curr_state_t.magnetic_heading_local.xi, curr_state_t.magnetic_heading_local.yj, curr_state_t.magnetic_heading_local.zk);
+        //printf("A: %lf, %lf, %lf \n\n", curr_state_t.accl_data.xi, curr_state_t.accl_data.yj, curr_state_t.accl_data.zk);
+        //printf("M: %lf, %lf, %lf \n\n", curr_state_t.magn_data.xi, curr_state_t.magn_data.yj, curr_state_t.magn_data.zk);
+        //printf("G: %lf, %lf, %lf \n\n", curr_state_t.gyro_data.xi, curr_state_t.gyro_data.yj, curr_state_t.gyro_data.zk);
+        //printf("R: %lf \t \t P: %lf \n\n", curr_state_t.abs_roll, curr_state_t.abs_pitch);
     }
     while(1);
 

@@ -33,13 +33,9 @@ void sensor_loop(void* state_pointer)
     uint64_t last_ms5_read_time = now_time;
     baro_init();
 
-    // initialize quaternions to 0 rotation 1 0 0 0
-    quaternion oreo = {.sc = 1.0, .xi = 0.0, .yj = 0.0, .zk = 0.0};
-
-    state_p->acceleration_local = mpuInit->accl;
-    state_p->angular_velocity_local = mpuInit->gyro;
-    state_p->magnetic_heading_local = hmcdatasc.magn;
-    state_p->orientation = oreo;
+    state_p->accl_data = mpuInit->accl;
+    state_p->gyro_data = mpuInit->gyro;
+    state_p->magn_data = hmcInit->magn;
 
     state_p->init = 1;
 
@@ -48,7 +44,7 @@ void sensor_loop(void* state_pointer)
         now_time = get_micro_timer_ticks_count();
 
         // read mpu every millisecond
-        if(now_time - last_mpu_read_time >= 1000)
+        if(now_time - last_mpu_read_time >= 2500)
         {
             // read mpu6050 data, and low pass accl
             get_scaled_MPUdata(&mpudatasc);
@@ -58,36 +54,16 @@ void sensor_loop(void* state_pointer)
             double time_delta_in_seconds = ((double)(now_time - last_mpu_read_time))/1000000;
             last_mpu_read_time = now_time;
 
-            state_p->angular_velocity_local = mpudatasc.gyro;
-            update_vector(&(state_p->acceleration_local), &(mpudatasc.accl), 1.0);
+            state_p->gyro_data = mpudatasc.gyro;
+            state_p->accl_data = mpudatasc.accl;
 
             // simply use gyro and raw accel to find absolute pitch and roll
-            state_p->abs_roll[1]
-                = (state_p->abs_roll[1]  + state_p->angular_velocity_local.xi * time_delta_in_seconds) * 0.98
-                + ((atan( mpudatasc.accl.yj/mpudatasc.accl.zk) - atan( mpuInit->accl.yj/mpuInit->accl.zk)) * 180 / M_PI) * 0.02;
-            state_p->abs_pitch[1]
-                = (state_p->abs_pitch[1] + state_p->angular_velocity_local.yj * time_delta_in_seconds) * 0.98
-                + ((atan(-mpudatasc.accl.xi/mpudatasc.accl.zk) - atan(-mpuInit->accl.xi/mpuInit->accl.zk)) * 180 / M_PI) * 0.02;
-
-            // gyroscope integration logic
-            now_time = get_micro_timer_ticks_count();
-            quat_raw quat_raw_change;
-            get_raw_quaternion_change_from_gyroscope(&quat_raw_change, &oreo, &(mpudatasc.gyro), time_delta_in_seconds);
-            quaternion quat_change;
-            to_quaternion(&quat_change, &quat_raw_change);
-            quaternion final_quat_gyro = oreo;
-            hamilton_product(&final_quat_gyro, &quat_change, &oreo);
-
-            // accelerometer magnetometer logic
-            quaternion final_quat_accl_magn = oreo;
-            get_quaternion_from_vectors_changes(&final_quat_accl_magn, &(state_p->acceleration_local), &(mpuInit->accl), &(state_p->magnetic_heading_local), &(hmcInit->magn));
-            conjugate(&final_quat_accl_magn, &final_quat_accl_magn);
-
-            // actual fusion logic called
-            slerp_quaternion(&oreo, &final_quat_gyro, GYRO_FUSION_FACTOR, &final_quat_accl_magn);
-
-            // update the global state vector
-            state_p->orientation = oreo;
+            state_p->abs_roll
+                = (state_p->abs_roll  + mpudatasc.gyro.xi * time_delta_in_seconds) * GYRO_FUSION_FACTOR
+                + ((atan( mpudatasc.accl.yj/mpudatasc.accl.zk) - atan( mpuInit->accl.yj/mpuInit->accl.zk)) * 180 / M_PI) * (1.0 - GYRO_FUSION_FACTOR);
+            state_p->abs_pitch
+                = (state_p->abs_pitch + mpudatasc.gyro.yj * time_delta_in_seconds) * GYRO_FUSION_FACTOR
+                + ((atan(-mpudatasc.accl.xi/mpudatasc.accl.zk) - atan(-mpuInit->accl.xi/mpuInit->accl.zk)) * 180 / M_PI) * (1.0 - GYRO_FUSION_FACTOR);
         }
 
         // read hmc every 13.3 milliseconds
@@ -101,7 +77,7 @@ void sensor_loop(void* state_pointer)
             last_hmc_read_time = now_time;
 
             // update the global state vector
-            update_vector(&(state_p->magnetic_heading_local), &(hmcdatasc.magn), 1.0);
+            state_p->magn_data = hmcdatasc.magn;
         }
 
         // check on ms5611 every 12 milliseconds

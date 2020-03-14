@@ -103,10 +103,10 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 	#endif
 
 	vector rate_required;
-	rate_required.xi = 3.0 * (cstate_p->roll  - state_p->abs_roll[1]);
-	rate_required.yj = 3.0 * (cstate_p->pitch - state_p->abs_pitch[1]);
+	rate_required.xi = 3.0 * (cstate_p->roll  - state_p->abs_roll);
+	rate_required.yj = 3.0 * (cstate_p->pitch - state_p->abs_pitch);
 
-	vector angular_rates = state_p->angular_velocity_local;
+	vector angular_rates = state_p->gyro_data;
 
 	if(cstate_p->throttle <= 100)
 	{
@@ -125,17 +125,6 @@ void get_corrections(corrections* corr, state* state_p, channel_state* cstate_p)
 		corr->yaw_corr = pid_update(&yaw_rate_pid, 0.0, angular_rates.zk);
 	}
 	corr->altitude_corr = cstate_p->throttle;
-
-	/*static int it = 0;
-	if(it == 10)
-	{
-		printf("R: %lf %lf \t\t P: %lf %lf\n", cstate_p->roll, state_p->abs_roll[1], cstate_p->pitch, state_p->abs_pitch[1]);
-		printf("Rates required : %lf %lf\n", rate_required.xi, rate_required.yj);
-		printf("Rates current  : %lf %lf\n", angular_rates.xi, angular_rates.yj);
-		printf("corr %lf R : %lf \n P : %lf\n", corr->altitude_corr, corr->roll_corr, corr->pitch_corr);
-		it = 0;
-    }
-	it++;*/
 }
 
 #include<nvs_flash.h>

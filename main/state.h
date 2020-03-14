@@ -10,29 +10,23 @@ struct state
 	// sensor module will set this as 1, when we can start reading
 	uint8_t init;
 
-	// the quaternion rotation from the initial state
-	quaternion orientation;
-
 	// angular velocity about local sensor axis
-	vector angular_velocity_local;
+	vector gyro_data;
 
 	// acceleration about local sensor axis
-	vector acceleration_local;
+	vector accl_data;
 
 	// magnetic heading of earth wrt local axis
-	vector magnetic_heading_local;
+	vector magn_data;
 
 	// angle of required to rotate about X axis, for Y axis to be parallel to horizon
-	double abs_roll[2];
+	double abs_roll;
 
 	// angle of required to rotate about Y axis, for X axis to be parallel to horizon
-	double abs_pitch[2];
+	double abs_pitch;
 
 	// altitude from the ground
 	double altitude;
-
-	// the rate at which moving away from ground
-	double altitude_rate;
 };
 
 typedef struct channel_state channel_state;
@@ -55,14 +49,6 @@ struct corrections
 	double roll_corr;
 	double altitude_corr;
 };
-
-void get_current_local_X_axis(state* st, vector* xl);
-
-void get_current_local_Y_axis(state* st, vector* yl);
-
-void get_current_local_Z_axis(state* st, vector* zl);
-
-void get_absolute_rotation_angles_about_local_axis(state* st);
 
 void update_channel_state(channel_state* cstate);
 
