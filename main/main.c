@@ -36,7 +36,7 @@ void app_main(void)
     gpio_set_level(BLINK_GPIO, 1);
 
     TaskHandle_t sensorLoopHandle = NULL;
-    xTaskCreate(sensor_loop, "SENOR_LOOP", 4096, &curr_state, configMAX_PRIORITIES - 1, sensorLoopHandle);
+    xTaskCreate(sensor_loop, "SENSOR_LOOP", 4096, &curr_state, configMAX_PRIORITIES - 1, sensorLoopHandle);
 
     // this will turn on all the bldc motors and set their min and max speed setting (this setting can be controller from bldc.h)
     //all_bldc_init();
@@ -54,16 +54,14 @@ void app_main(void)
     gpio_set_level(BLINK_GPIO, 0);
     // gpio off so now give controls
 
-    vector min = {0, 0, 0};
-    vector max = {0, 0, 0};
+    //vector min = {0, 0, 0};
+    //vector max = {0, 0, 0};
     do
     {
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(1 / portTICK_PERIOD_MS);
 
-        // read current sensor states
         state curr_state_t = curr_state;
 
-        // read current inputs from the user
         update_channel_state(&chn_state);
 
         corrections corr;
