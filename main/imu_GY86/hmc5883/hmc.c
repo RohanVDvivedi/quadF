@@ -19,14 +19,14 @@ const HMCdatascaled* hmc_init()
     uint8_t data;
 
     // acess HMC5883 magnetometer here, and configure them
-    data = 0x78;
-    i2c_write(HMC5883_ADDRESS, 0x01, &data, 1);
+    data = 0x18;
+    i2c_write(HMC5883_ADDRESS, 0x00, &data, 1);
 
     data = 0x20;
-    i2c_write(HMC5883_ADDRESS, 0x02, &data, 1);
+    i2c_write(HMC5883_ADDRESS, 0x01, &data, 1);
 
-    data = 0x00;
-    i2c_write(HMC5883_ADDRESS, 0x03, &data, 1);
+    data = 0x01;
+    i2c_write(HMC5883_ADDRESS, 0x02, &data, 1);
     // magnetometer settings done
 
     // a small delay before we start reading the sensors
