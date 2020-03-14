@@ -109,7 +109,7 @@ esp_err_t get_raw_Barodata_abspressure()
         // read and place it in pressure D1
         uint8_t data_read[3];
         err = i2c_read_raw(MS5611_ADDRESS, data_read, 3);
-        data.D1 = (data_read[0] << 16) | (data_read[1] << 8) | data_read[0];
+        data.D1 = (data_read[0] << 16) | (data_read[1] << 8) | data_read[2];
     }
 
     current_state = READ_PRESSURE;
@@ -128,7 +128,7 @@ esp_err_t get_raw_Barodata_temperature()
         // read and place it in temperature D2
         uint8_t data_read[3];
         err = i2c_read_raw(MS5611_ADDRESS, data_read, 3);
-        data.D2 = (data_read[0] << 16) | (data_read[1] << 8) | data_read[0];
+        data.D2 = (data_read[0] << 16) | (data_read[1] << 8) | data_read[2];
     }
 
     current_state = READ_TEMPERATURE;

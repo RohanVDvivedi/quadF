@@ -44,7 +44,7 @@ void sensor_loop(void* state_pointer)
         now_time = get_micro_timer_ticks_count();
 
         // read mpu every millisecond
-        if(now_time - last_mpu_read_time >= 2500)
+        if(now_time - last_mpu_read_time >= 2500)   // execution time = 780-850 microseconds
         {
             // read mpu6050 data, and low pass accl
             get_scaled_MPUdata(&mpudatasc);
@@ -67,7 +67,7 @@ void sensor_loop(void* state_pointer)
         }
 
         // read hmc every 13.3 milliseconds
-        if(now_time - last_hmc_read_time >= 13340)
+        if(now_time - last_hmc_read_time >= 13340)  // execution time = 470 microseconds
         {
             // read hmc5883l data, and low pass magnetometer
             get_scaled_HMCdata(&hmcdatasc);
@@ -81,7 +81,7 @@ void sensor_loop(void* state_pointer)
         }
 
         // check on ms5611 every 12 milliseconds
-        if(now_time - last_ms5_read_time >= 12000)
+        if(now_time - last_ms5_read_time >= 12000)   // execution time = 600-900 microseconds
         {
             if(get_current_ms5611_state() == REQUESTED_TEMPERATURE)
             {
