@@ -54,9 +54,11 @@ void app_main(void)
     gpio_set_level(BLINK_GPIO, 0);
     // gpio off so now give controls
 
+    vector min = {0, 0, 0};
+    vector max = {0, 0, 0};
     do
     {
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
 
         // read current sensor states
         state curr_state_t = curr_state;
@@ -70,8 +72,19 @@ void app_main(void)
 
         write_corrections_to_motors(&corr);
 
+        /*min.xi = MIN(curr_state_t.magn_data.xi, min.xi);
+        min.yj = MIN(curr_state_t.magn_data.yj, min.yj);
+        min.zk = MIN(curr_state_t.magn_data.zk, min.zk);
+        max.xi = MAX(curr_state_t.magn_data.xi, max.xi);
+        max.yj = MAX(curr_state_t.magn_data.yj, max.yj);
+        max.zk = MAX(curr_state_t.magn_data.zk, max.zk);
+        static int i = 0;
+        if(i == 30){printf("min: %lf, %lf, %lf\n", min.xi, min.yj, min.zk);}
+        if(i == 30){printf("max: %lf, %lf, %lf\n", max.xi, max.yj, max.zk); i = 0;}
+        i++;*/
+
         //printf("A: %lf, %lf, %lf \n\n", curr_state_t.accl_data.xi, curr_state_t.accl_data.yj, curr_state_t.accl_data.zk);
-        printf("M: %lf, %lf, %lf \n\n", curr_state_t.magn_data.xi, curr_state_t.magn_data.yj, curr_state_t.magn_data.zk);
+        //printf("M: %lf, %lf, %lf \n\n", curr_state_t.magn_data.xi, curr_state_t.magn_data.yj, curr_state_t.magn_data.zk);
         //printf("G: %lf, %lf, %lf \n\n", curr_state_t.gyro_data.xi, curr_state_t.gyro_data.yj, curr_state_t.gyro_data.zk);
         //printf("R: %lf \t \t P: %lf \n\n", curr_state_t.abs_roll, curr_state_t.abs_pitch);
         //printf("Alt: %lf \n\n", curr_state_t.altitude);
