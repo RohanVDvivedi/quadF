@@ -16,8 +16,8 @@ timer_event_info timer_events_informations[MAX_TIMER_EVENTS];
 
 void timer_event_isr(void* param)
 {
-    timer_spinlock_take(TIMER_GROUP_0);
-    uint64_t now_ticks_count = timer_group_get_counter_value_in_isr(TIMER_GROUP_0, 0);
+    //timer_spinlock_take(TIMER_GROUP_0);
+    uint64_t now_ticks_count = timer_group_get_counter_value_in_isr(TIMER_GROUP_0, TIMER_0);
     uint64_t minimum_next_occurence_value = (uint64_t)((int64_t)(-1));
     for(uint8_t i = 0; i < MAX_TIMER_EVENTS; i++)
     {
@@ -35,9 +35,9 @@ void timer_event_isr(void* param)
             }
         }
     }
-    timer_group_set_alarm_value_in_isr(TIMER_GROUP_0, 0, minimum_next_occurence_value);
-    timer_group_enable_alarm_in_isr(TIMER_GROUP_0, 0);
-    timer_spinlock_give(TIMER_GROUP_0);
+    timer_group_set_alarm_value_in_isr(TIMER_GROUP_0, TIMER_0, minimum_next_occurence_value);
+    timer_group_enable_alarm_in_isr(TIMER_GROUP_0, TIMER_0);
+    //timer_spinlock_give(TIMER_GROUP_0);
 }
 
 //
@@ -57,8 +57,8 @@ void micro_timer_init()
     	conf.counter_en = true;
     	conf.counter_dir = TIMER_COUNT_UP;
     	conf.divider = 80;
-    	timer_init(TIMER_GROUP_0, 0, &conf);
-        timer_set_counter_value(TIMER_GROUP_0, 0, 0x00000000ULL);
+    	timer_init(TIMER_GROUP_0, TIMER_0, &conf);
+        timer_set_counter_value(TIMER_GROUP_0, TIMER_0, 0x00000000ULL);
     }
 }
 
@@ -71,9 +71,9 @@ void micro_timer_start()
         microtimer_is_already_running = 1;
 
         // set interrupt and start the timer, the interrupt goes off, if and only if alarm is set
-        timer_enable_intr(TIMER_GROUP_0, 0);
-        timer_isr_register(TIMER_GROUP_0, 0, timer_event_isr, NULL, 0, NULL);
-        timer_start(TIMER_GROUP_0, 0);
+        timer_enable_intr(TIMER_GROUP_0, TIMER_0);
+        timer_isr_register(TIMER_GROUP_0, TIMER_0, timer_event_isr, NULL, 0, NULL);
+        timer_start(TIMER_GROUP_0, TIMER_0);
     }
 }
 
@@ -88,19 +88,19 @@ void register_microtimer_event(uint8_t timer_event_no, uint64_t every_x_ticks, Q
     timer_events_informations[timer_event_no].enabled = 1;
 
     uint64_t alarm_value = timer_events_informations[timer_event_no].next_occurence;
-    timer_get_alarm_value(TIMER_GROUP_0, 0, &alarm_value);
+    timer_get_alarm_value(TIMER_GROUP_0, TIMER_0, &alarm_value);
     if(alarm_value > timer_events_informations[timer_event_no].next_occurence)
     {
         alarm_value = timer_events_informations[timer_event_no].next_occurence;
     }
 
-    timer_set_alarm_value(TIMER_GROUP_0, 0, alarm_value);
-    timer_set_alarm(TIMER_GROUP_0, 0, TIMER_ALARM_EN);
+    timer_set_alarm_value(TIMER_GROUP_0, TIMER_0, alarm_value);
+    timer_set_alarm(TIMER_GROUP_0, TIMER_0, TIMER_ALARM_EN);
 }
 
 uint64_t get_micro_timer_ticks_count()
 {
 	uint64_t now_ticks;
-    timer_get_counter_value(TIMER_GROUP_0, 0, &now_ticks);
+    timer_get_counter_value(TIMER_GROUP_0, TIMER_0, &now_ticks);
     return now_ticks;
 }
