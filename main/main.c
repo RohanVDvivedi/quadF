@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "sdkconfig.h"
+#include<stdio.h>
+#include"freertos/FreeRTOS.h"
+#include"freertos/task.h"
+#include"sdkconfig.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
@@ -23,75 +23,51 @@ state curr_state;
 
 channel_state chn_state;
 
+corrections corr;
+
 void app_main(void)
 {
-    // this will turn on all the bldc motors and set their min and max speed setting (this setting can be controller from bldc.h)
-    all_bldc_init();
-
-    //vTaskDelay(10000 / portTICK_PERIOD_MS);
-
-    // stay away from the remote and dron give no control inputs while the gpio is on
+    // stay away from the remote and drone give no control inputs while the led on the ESP32 is lit
     gpio_pad_select_gpio(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
     gpio_set_level(BLINK_GPIO, 1);
 
-    TaskHandle_t sensorLoopHandle = NULL;
-    xTaskCreate(sensor_loop, "SENSOR_LOOP", 4096, &curr_state, configMAX_PRIORITIES - 1, sensorLoopHandle);
-
-    // this will turn on all the bldc motors and set their min and max speed setting (this setting can be controller from bldc.h)
-    //all_bldc_init();
-    
+    // this will initialize the input from the rc receiver
     channels_init();
 
-    state curr_state_t = curr_state;
+    // this will turn on all the bldc motors and set their min and max speed setting (this setting can be controller from bldc.h)
+    all_bldc_init();
 
+    TaskHandle_t sensorEventLoopHandle = NULL;
+    xTaskCreate(sensor_event_loop, "SENSOR_EVENT_LOOP", 4096, &curr_state, configMAX_PRIORITIES - 1, sensorEventLoopHandle);
+
+    state curr_state_t = curr_state;
     while(curr_state_t.init == 0)
     {
+        printf("not ready\n");
         vTaskDelay(500 / portTICK_PERIOD_MS);
-        curr_state_t = curr_state;printf("not ready\n");
+        curr_state_t = curr_state;
     }
 
     gpio_set_level(BLINK_GPIO, 0);
     // gpio off so now give controls
 
-    //vector min = {0, 0, 0};
-    //vector max = {0, 0, 0};
-    do
+    timer_event current_event;
+
+    while(1)
     {
-        vTaskDelay(1 / portTICK_PERIOD_MS);
-
-        state curr_state_t = curr_state;
-
-        update_channel_state(&chn_state);
-
-        corrections corr;
-
-        get_corrections(&corr, &curr_state_t, &chn_state);
-
-        write_corrections_to_motors(&corr);
-
-        /*min.xi = MIN(curr_state_t.magn_data.xi, min.xi);
-        min.yj = MIN(curr_state_t.magn_data.yj, min.yj);
-        min.zk = MIN(curr_state_t.magn_data.zk, min.zk);
-        max.xi = MAX(curr_state_t.magn_data.xi, max.xi);
-        max.yj = MAX(curr_state_t.magn_data.yj, max.yj);
-        max.zk = MAX(curr_state_t.magn_data.zk, max.zk);
-        static int i = 0;
-        if(i == 30){printf("min: %lf, %lf, %lf\n", min.xi, min.yj, min.zk);}
-        if(i == 30){printf("max: %lf, %lf, %lf\n", max.xi, max.yj, max.zk); i = 0;}
-        i++;*/
-
-        //printf("A: %lf, %lf, %lf \n\n", curr_state_t.accl_data.xi, curr_state_t.accl_data.yj, curr_state_t.accl_data.zk);
-        //printf("M: %lf, %lf, %lf \n\n", curr_state_t.magn_data.xi, curr_state_t.magn_data.yj, curr_state_t.magn_data.zk);
-        //printf("G: %lf, %lf, %lf \n\n", curr_state_t.gyro_data.xi, curr_state_t.gyro_data.yj, curr_state_t.gyro_data.zk);
-        //printf("R: %lf \t \t P: %lf \n\n", curr_state_t.abs_roll, curr_state_t.abs_pitch);
-        //printf("Alt: %lf \n\n", curr_state_t.altitude);
+        if(current_event.type == PID_UPDATE)
+        {
+            state curr_state_t = curr_state;
+            update_channel_state(&chn_state);
+            get_corrections(&corr, &curr_state_t, &chn_state);
+            write_corrections_to_motors(&corr);
+        }
     }
-    while(1);
 
-    if( sensorLoopHandle != NULL )
+    if(sensorEventLoopHandle != NULL)
     {
-        vTaskDelete(sensorLoopHandle);
+        vTaskDelete(sensorEventLoopHandle);
     }
 
     channels_destroy();
