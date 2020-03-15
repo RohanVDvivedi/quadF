@@ -34,15 +34,19 @@ void sensor_event_loop(void* state_pointer)
 
     state_p->init = 1;
 
-    // reading MPU6050 every 2500 microseconds
-    // reading HMC5883l every 13340 microseconds
-    // reading MS5611 every 12000 microseconds
-
     micro_timer_init();
     micro_timer_start();
 
     timer_event tim_evnt = 0;
     QueueHandle_t eventQueue = xQueueCreate(8, sizeof(uint8_t));
+
+    // reading MPU6050 every 2500 microseconds
+    register_microtimer_event(MPU_READ, 2500, eventQueue);
+    // reading HMC5883l every 13340 microseconds
+    register_microtimer_event(HMC_READ, 13340, eventQueue);
+    // reading MS5611 every 12000 microseconds
+    register_microtimer_event(MS5_READ, 12000, eventQueue);
+
     while(xQueueReceive(eventQueue, &tim_evnt, (TickType_t)5) == pdPASS)
     {
         // read mpu every 2.5 milliseconds

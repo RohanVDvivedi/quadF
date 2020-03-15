@@ -58,6 +58,9 @@ void app_main(void)
 
     timer_event tim_evnt = 0;
     QueueHandle_t eventQueue = xQueueCreate(8, sizeof(tim_evnt));
+
+    register_microtimer_event(PID_UPDATE, 2500, eventQueue);
+
     while(xQueueReceive(eventQueue, &tim_evnt, (TickType_t)5) == pdPASS)
     {
         if(tim_evnt == PID_UPDATE)
