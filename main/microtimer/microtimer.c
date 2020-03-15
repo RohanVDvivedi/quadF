@@ -16,28 +16,34 @@ timer_event_info timer_events_informations[MAX_TIMER_EVENTS];
 
 void timer_event_isr(void* param)
 {
-    //timer_spinlock_take(TIMER_GROUP_0);
-    uint64_t now_ticks_count = timer_group_get_counter_value_in_isr(TIMER_GROUP_0, TIMER_0);
-    uint64_t minimum_next_occurence_value = (uint64_t)((int64_t)(-1));
-    for(uint8_t i = 0; i < MAX_TIMER_EVENTS; i++)
+    uint32_t intr_status = TIMERG0.int_st_timers.val;
+    TIMERG0.hw_timer[0].update = 1;
+    if((intr_status & BIT(0)))
     {
-        if(timer_events_informations[i].enabled)
+        uint64_t now_ticks_count;
+        timer_get_counter_value(TIMER_GROUP_0, TIMER_0, &now_ticks_count);
+        uint64_t minimum_next_occurence_value = (uint64_t)((int64_t)(-1));
+        for(uint8_t i = 0; i < MAX_TIMER_EVENTS; i++)
         {
-            if(timer_events_informations[i].next_occurence <= now_ticks_count)
+            if(timer_events_informations[i].enabled)
             {
-                xQueueSendFromISR(timer_events_informations[i].queue_to_inform_event, &i, NULL);
-                timer_events_informations[i].last_occurence = now_ticks_count;
-                timer_events_informations[i].next_occurence = timer_events_informations[i].last_occurence + timer_events_informations[i].every_x_ticks;
-            }
-            if(timer_events_informations[i].next_occurence < minimum_next_occurence_value)
-            {
-                minimum_next_occurence_value = timer_events_informations[i].next_occurence;
+                timer_get_counter_value(TIMER_GROUP_0, TIMER_0, &now_ticks_count);
+                if(timer_events_informations[i].next_occurence <= now_ticks_count)
+                {
+                    xQueueSendFromISR(timer_events_informations[i].queue_to_inform_event, &i, NULL);
+                    timer_events_informations[i].last_occurence = now_ticks_count;
+                    timer_events_informations[i].next_occurence = timer_events_informations[i].last_occurence + timer_events_informations[i].every_x_ticks;
+                }
+                if(timer_events_informations[i].next_occurence < minimum_next_occurence_value)
+                {
+                    minimum_next_occurence_value = timer_events_informations[i].next_occurence;
+                }
             }
         }
+        TIMERG0.int_clr_timers.t0 = 1;
+        timer_set_alarm_value(TIMER_GROUP_0, TIMER_0, minimum_next_occurence_value);
+        timer_set_alarm(TIMER_GROUP_0, TIMER_0, TIMER_ALARM_EN);
     }
-    timer_group_set_alarm_value_in_isr(TIMER_GROUP_0, TIMER_0, minimum_next_occurence_value);
-    timer_group_enable_alarm_in_isr(TIMER_GROUP_0, TIMER_0);
-    //timer_spinlock_give(TIMER_GROUP_0);
 }
 
 //
