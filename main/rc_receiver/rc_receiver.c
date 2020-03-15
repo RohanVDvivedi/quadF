@@ -29,6 +29,7 @@ void channels_init()
 {
     // start the micro timer, if is already not started
     micro_timer_init();
+    void micro_timer_start();
 
     // set the channel pins direction to input, and to interrupt on any edge
     for(uint8_t i = 0; i < CHANNEL_COUNT; i++)

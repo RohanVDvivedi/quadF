@@ -50,19 +50,13 @@ struct corrections
 	double altitude_corr;
 };
 
-typedef enum timer_event_type timer_event_type;
-enum timer_event_type
+typedef enum timer_event timer_event;
+enum timer_event
 {
 	PID_UPDATE,
 	MPU_READ,
 	HMC_READ,
 	MS5_READ
-};
-
-typedef struct timer_event timer_event;
-struct timer_event
-{
-	timer_event_type type;
 };
 
 void update_channel_state(channel_state* cstate);

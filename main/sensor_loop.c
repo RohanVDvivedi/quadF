@@ -13,6 +13,7 @@ void sensor_event_loop(void* state_pointer)
     state* state_p = ((state*)(state_pointer));
 
     micro_timer_init();
+    micro_timer_start();
 
     i2c_init();
 
@@ -40,12 +41,12 @@ void sensor_event_loop(void* state_pointer)
     // reading HMC5883l every 13340 microseconds
     // reading MS5611 every 12000 microseconds
 
-    timer_event current_event;
-
-    while(1)
+    timer_event tim_evnt;
+    QueueHandle_t eventQueue = xQueueCreate(8, sizeof(tim_evnt));
+    while(xQueueReceive(eventQueue, &tim_evnt, (TickType_t)5) == pdPASS)
     {
         // read mpu every 2.5 milliseconds
-        if(current_event.type == MPU_READ)   // execution time = 780-850 microseconds
+        if(tim_evnt == MPU_READ)   // execution time = 780-850 microseconds
         {
             // read mpu6050 data, and low pass accl
             get_scaled_MPUdata(&mpudatasc);
@@ -65,8 +66,8 @@ void sensor_event_loop(void* state_pointer)
                 = (state_p->abs_pitch + mpudatasc.gyro.yj * time_delta_in_seconds) * GYRO_FUSION_FACTOR
                 + ((atan(-mpudatasc.accl.xi/mpudatasc.accl.zk) - atan(-mpuInit->accl.xi/mpuInit->accl.zk)) * 180 / M_PI) * (1.0 - GYRO_FUSION_FACTOR);
         }
-        // read hmc every 13.3 milliseconds
-        else if(current_event.type == HMC_READ)  // execution time = 470 microseconds
+        // read hmc every 13.34 milliseconds
+        else if(tim_evnt == HMC_READ)  // execution time = 470 microseconds
         {
             // read hmc5883l data, and low pass magnetometer
             get_scaled_HMCdata(&hmcdatasc);
@@ -78,7 +79,7 @@ void sensor_event_loop(void* state_pointer)
             state_p->magn_data = hmcdatasc.magn;
         }
         // check on ms5611 every 12 milliseconds
-        else if(current_event.type == MS5_READ)   // execution time = 600-900 microseconds
+        else if(tim_evnt == MS5_READ)   // execution time = 600-900 microseconds
         {
             if(get_current_ms5611_state() == REQUESTED_TEMPERATURE)
             {
@@ -106,6 +107,7 @@ void sensor_event_loop(void* state_pointer)
             last_ms5_read_time = get_micro_timer_ticks_count();
         }
     }
+    vQueueDelete(eventQueue);
 
     i2c_destroy();
 }

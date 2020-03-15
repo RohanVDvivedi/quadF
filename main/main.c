@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include"freertos/FreeRTOS.h"
 #include"freertos/task.h"
+#include"freertos/queue.h"
 #include"sdkconfig.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
@@ -52,11 +53,13 @@ void app_main(void)
     gpio_set_level(BLINK_GPIO, 0);
     // gpio off so now give controls
 
-    timer_event current_event;
-
-    while(1)
+    micro_timer_init();
+    micro_timer_start();
+    timer_event tim_evnt;
+    QueueHandle_t eventQueue = xQueueCreate(8, sizeof(tim_evnt));
+    while(xQueueReceive(eventQueue, &tim_evnt, (TickType_t)5) == pdPASS)
     {
-        if(current_event.type == PID_UPDATE)
+        if(tim_evnt == PID_UPDATE)
         {
             state curr_state_t = curr_state;
             update_channel_state(&chn_state);
@@ -64,6 +67,7 @@ void app_main(void)
             write_corrections_to_motors(&corr);
         }
     }
+    vQueueDelete(eventQueue);
 
     if(sensorEventLoopHandle != NULL)
     {

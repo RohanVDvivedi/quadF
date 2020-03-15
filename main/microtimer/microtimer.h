@@ -7,6 +7,7 @@
 // each tick of this counter is a microsecond apart
 
 void micro_timer_init();
+void micro_timer_start();
 uint64_t get_micro_timer_ticks_count();
 
 #endif
