@@ -47,7 +47,7 @@ void sensor_event_loop(void* state_pointer)
     // reading MS5611 every 12000 microseconds
     register_microtimer_event(MS5_READ, 12000, eventQueue);
 
-    while(xQueueReceive(eventQueue, &tim_evnt, (TickType_t)5) == pdPASS)
+    while(xQueueReceive(eventQueue, &tim_evnt, 5 / portTICK_PERIOD_MS) == pdPASS)
     {
         // read mpu every 2.5 milliseconds
         if(tim_evnt == MPU_READ)   // execution time = 780-850 microseconds

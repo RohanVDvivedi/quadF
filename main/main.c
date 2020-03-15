@@ -61,7 +61,7 @@ void app_main(void)
 
     register_microtimer_event(PID_UPDATE, 2500, eventQueue);
 
-    while(xQueueReceive(eventQueue, &tim_evnt, (TickType_t)5) == pdPASS)
+    while(xQueueReceive(eventQueue, &tim_evnt, 5 / portTICK_PERIOD_MS) == pdPASS)
     {
         if(tim_evnt == PID_UPDATE)
         {
