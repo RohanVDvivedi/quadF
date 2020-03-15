@@ -53,7 +53,7 @@ struct corrections
 typedef enum timer_event timer_event;
 enum timer_event
 {
-	PID_UPDATE,
+	PID_UPDATE = 0,
 	MPU_READ,
 	HMC_READ,
 	MS5_READ

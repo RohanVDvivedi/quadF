@@ -55,7 +55,8 @@ void app_main(void)
 
     micro_timer_init();
     micro_timer_start();
-    timer_event tim_evnt;
+
+    timer_event tim_evnt = 0;
     QueueHandle_t eventQueue = xQueueCreate(8, sizeof(tim_evnt));
     while(xQueueReceive(eventQueue, &tim_evnt, (TickType_t)5) == pdPASS)
     {

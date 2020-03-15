@@ -12,9 +12,6 @@ void sensor_event_loop(void* state_pointer)
 {
     state* state_p = ((state*)(state_pointer));
 
-    micro_timer_init();
-    micro_timer_start();
-
     i2c_init();
 
     MPUdatascaled mpudatasc;
@@ -41,8 +38,11 @@ void sensor_event_loop(void* state_pointer)
     // reading HMC5883l every 13340 microseconds
     // reading MS5611 every 12000 microseconds
 
-    timer_event tim_evnt;
-    QueueHandle_t eventQueue = xQueueCreate(8, sizeof(tim_evnt));
+    micro_timer_init();
+    micro_timer_start();
+
+    timer_event tim_evnt = 0;
+    QueueHandle_t eventQueue = xQueueCreate(8, sizeof(uint8_t));
     while(xQueueReceive(eventQueue, &tim_evnt, (TickType_t)5) == pdPASS)
     {
         // read mpu every 2.5 milliseconds
