@@ -60,6 +60,7 @@ void app_main(void)
     QueueHandle_t eventQueue = xQueueCreate(8, sizeof(tim_evnt));
 
     register_microtimer_event(PID_UPDATE, 2500, eventQueue);
+    register_microtimer_event(TEST, 1000000, eventQueue);
 
     while(xQueueReceive(eventQueue, &tim_evnt, 5 / portTICK_PERIOD_MS) == pdPASS)
     {
@@ -69,6 +70,10 @@ void app_main(void)
             update_channel_state(&chn_state);
             get_corrections(&corr, &curr_state_t, &chn_state);
             write_corrections_to_motors(&corr);
+        }
+        else if(tim_evnt == TEST)
+        {
+            printf("Test\n");
         }
     }
     vQueueDelete(eventQueue);
