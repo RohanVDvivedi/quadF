@@ -25,7 +25,7 @@ void timer_event_isr(void* param)
         {
             if(timer_events_informations[i].next_occurence <= now_ticks_count)
             {
-                xQueueSendFromISR(timer_events_informations[i].queue_to_inform_event, &i, (TickType_t)0);
+                xQueueSendFromISR(timer_events_informations[i].queue_to_inform_event, &i, NULL);
                 timer_events_informations[i].last_occurence = now_ticks_count;
                 timer_events_informations[i].next_occurence = timer_events_informations[i].last_occurence + timer_events_informations[i].every_x_ticks;
             }
