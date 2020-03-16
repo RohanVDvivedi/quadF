@@ -13,6 +13,7 @@
 void micro_timer_init();
 void micro_timer_start();
 void register_microtimer_event(uint8_t timer_event_no, uint64_t every_x_ticks, QueueHandle_t queue_to_inform_event);
+void peek_microtimer_event(uint8_t timer_event_no);
 uint64_t get_micro_timer_ticks_count();
 
 #endif

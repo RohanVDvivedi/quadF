@@ -18,6 +18,7 @@ void sensor_event_loop(void* state_pointer)
     const MPUdatascaled* mpuInit = mpu_init();
     mpudatasc = (*mpuInit);
     uint64_t last_mpu_read_time = get_micro_timer_ticks_count();
+    double time_delta_in_seconds = 0;
 
 	HMCdatascaled hmcdatasc;
     const HMCdatascaled* hmcInit = hmc_init();
@@ -47,7 +48,7 @@ void sensor_event_loop(void* state_pointer)
     // reading MS5611 every 12000 microseconds
     register_microtimer_event(MS5_READ, 12000, eventQueue);
 
-    //register_microtimer_event(TEST_SENSOR, 3000000, eventQueue);
+    register_microtimer_event(TEST_SENSOR, 3000000, eventQueue);
 
     while(xQueueReceive(eventQueue, &tim_evnt, portMAX_DELAY) == pdPASS)
     {
@@ -60,7 +61,7 @@ void sensor_event_loop(void* state_pointer)
                 get_scaled_MPUdata(&mpudatasc);
 
                 // after reading mpu data, calculate time delta and update the last read time
-                double time_delta_in_seconds = ((double)(get_micro_timer_ticks_count() - last_mpu_read_time))/1000000;
+                time_delta_in_seconds = ((double)(get_micro_timer_ticks_count() - last_mpu_read_time))/1000000.0;
                 last_mpu_read_time = get_micro_timer_ticks_count();
 
                 state_p->gyro_data = mpudatasc.gyro;
@@ -73,6 +74,18 @@ void sensor_event_loop(void* state_pointer)
                 state_p->abs_pitch
                     = (state_p->abs_pitch + mpudatasc.gyro.yj * time_delta_in_seconds) * GYRO_FUSION_FACTOR
                     + ((atan(-mpudatasc.accl.xi/mpudatasc.accl.zk) - atan(-mpuInit->accl.xi/mpuInit->accl.zk)) * 180 / M_PI) * (1.0 - GYRO_FUSION_FACTOR);
+
+                // THIS SHIT BELOW MUST NOT BE DONE
+                // BUT I NEED THIS WORKING BADLY, SO DID IT ANYWAY
+                    // feed watchdog timer 0
+                    TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
+                    TIMERG0.wdt_feed=1;
+                    TIMERG0.wdt_wprotect=0;
+                    // feed watchdog timer 1
+                    TIMERG1.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
+                    TIMERG1.wdt_feed=1;
+                    TIMERG1.wdt_wprotect=0;
+
                 break;
             }
             // read hmc every 13.34 milliseconds
@@ -119,13 +132,17 @@ void sensor_event_loop(void* state_pointer)
             }
             case TEST_SENSOR :
             {
-                printf("Test Sensor mpu = %llu, hmc = %llu, ms5 = %llu\n", last_mpu_read_time, last_hmc_read_time, last_ms5_read_time);
-                printf("A: %lf, %lf, %lf \n\n", state_p->accl_data.xi, state_p->accl_data.yj, state_p->accl_data.zk);
-                printf("M: %lf, %lf, %lf \n\n", state_p->magn_data.xi, state_p->magn_data.yj, state_p->magn_data.zk);
-                printf("G: %lf, %lf, %lf \n\n", state_p->gyro_data.xi, state_p->gyro_data.yj, state_p->gyro_data.zk);
-                printf("R: %lf \t \t P: %lf \n\n", state_p->abs_roll, state_p->abs_pitch);
-                printf("Alt: %lf \n\n", state_p->altitude);
-                printf("-------------------------\n\n\n");
+                if(time_delta_in_seconds < 2500.0/1000000.0)
+                {
+                    printf("Test Sensor mpu = %lf\n", time_delta_in_seconds * 1000000.0);
+                    peek_microtimer_event(MPU_READ);
+                    /*printf("A: %lf, %lf, %lf \n\n", state_p->accl_data.xi, state_p->accl_data.yj, state_p->accl_data.zk);
+                    printf("M: %lf, %lf, %lf \n\n", state_p->magn_data.xi, state_p->magn_data.yj, state_p->magn_data.zk);
+                    printf("G: %lf, %lf, %lf \n\n", state_p->gyro_data.xi, state_p->gyro_data.yj, state_p->gyro_data.zk);
+                    printf("R: %lf \t \t P: %lf \n\n", state_p->abs_roll, state_p->abs_pitch);
+                    printf("Alt: %lf \n\n", state_p->altitude);
+                    printf("-------------------------\n\n\n");*/
+                }
                 break;
             }
             default :

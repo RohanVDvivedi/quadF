@@ -64,16 +64,18 @@ void app_main(void)
 
     // PID update frequency is 400 Hz i.e. every 2500 mircoseconds
     register_microtimer_event(PID_UPDATE, 2500, eventQueue);
+    uint64_t delta_pid_update = 0;
     uint64_t last_pid_updated_at = get_micro_timer_ticks_count();
     // TEST event is used to debug only, for sensors and etc
-    //register_microtimer_event(TEST_MAIN, 3000000, eventQueue);
+    register_microtimer_event(TEST_MAIN, 3000000, eventQueue);
 
     while(xQueueReceive(eventQueue, &tim_evnt, portMAX_DELAY) == pdPASS)
     {
         switch(tim_evnt)
         {
-            case PID_UPDATE :
+            case PID_UPDATE : // takes hardly 50 microseconds fro execution
             {
+                delta_pid_update = get_micro_timer_ticks_count() - last_pid_updated_at;
                 last_pid_updated_at = get_micro_timer_ticks_count();
                 curr_state_t = curr_state;
                 update_channel_state(&chn_state);
@@ -82,22 +84,29 @@ void app_main(void)
 
                 // THIS SHIT BELOW MUST NOT BE DONE
                 // BUT I NEED THIS WORKING BADLY, SO DID IT ANYWAY
-                    // feed dog 0
-                    TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
-                    TIMERG0.wdt_feed=1;                       // feed dog
-                    TIMERG0.wdt_wprotect=0;                   // write protect
-
+                    // feed watchdog timer 0
+                    TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
+                    TIMERG0.wdt_feed=1;
+                    TIMERG0.wdt_wprotect=0;
+                    // feed watchdog timer 1
+                    TIMERG1.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
+                    TIMERG1.wdt_feed=1;
+                    TIMERG1.wdt_wprotect=0;
                 break;
             }
             case TEST_MAIN:
             {
-                printf("Test Main pid_update %llu\n\n", last_pid_updated_at);
-                printf("A: %lf, %lf, %lf \n\n", curr_state_t.accl_data.xi, curr_state_t.accl_data.yj, curr_state_t.accl_data.zk);
-                printf("M: %lf, %lf, %lf \n\n", curr_state_t.magn_data.xi, curr_state_t.magn_data.yj, curr_state_t.magn_data.zk);
-                printf("G: %lf, %lf, %lf \n\n", curr_state_t.gyro_data.xi, curr_state_t.gyro_data.yj, curr_state_t.gyro_data.zk);
-                printf("R: %lf \t \t P: %lf \n\n", curr_state_t.abs_roll, curr_state_t.abs_pitch);
-                printf("Alt: %lf \n\n", curr_state_t.altitude);
-                printf("-------------------------\n\n\n");
+                if(delta_pid_update < 2500)
+                {
+                    printf("Test Main pid_update %llu\n\n", delta_pid_update);
+                    peek_microtimer_event(PID_UPDATE);
+                    /*printf("A: %lf, %lf, %lf \n\n", curr_state_t.accl_data.xi, curr_state_t.accl_data.yj, curr_state_t.accl_data.zk);
+                    printf("M: %lf, %lf, %lf \n\n", curr_state_t.magn_data.xi, curr_state_t.magn_data.yj, curr_state_t.magn_data.zk);
+                    printf("G: %lf, %lf, %lf \n\n", curr_state_t.gyro_data.xi, curr_state_t.gyro_data.yj, curr_state_t.gyro_data.zk);
+                    printf("R: %lf \t \t P: %lf \n\n", curr_state_t.abs_roll, curr_state_t.abs_pitch);
+                    printf("Alt: %lf \n\n", curr_state_t.altitude);
+                    printf("-------------------------\n\n\n");*/
+                }
                 break;
             }
             default :
