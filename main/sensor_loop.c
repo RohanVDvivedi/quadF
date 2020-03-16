@@ -119,7 +119,13 @@ void sensor_event_loop(void* state_pointer)
             }
             case TEST_SENSOR :
             {
-                printf("Test Sensor\n");
+                printf("Test Sensor mpu = %llu, hmc = %llu, ms5 = %llu\n", last_mpu_read_time, last_hmc_read_time, last_ms5_read_time);
+                printf("A: %lf, %lf, %lf \n\n", state_p->accl_data.xi, state_p->accl_data.yj, state_p->accl_data.zk);
+                printf("M: %lf, %lf, %lf \n\n", state_p->magn_data.xi, state_p->magn_data.yj, state_p->magn_data.zk);
+                printf("G: %lf, %lf, %lf \n\n", state_p->gyro_data.xi, state_p->gyro_data.yj, state_p->gyro_data.zk);
+                printf("R: %lf \t \t P: %lf \n\n", state_p->abs_roll, state_p->abs_pitch);
+                printf("Alt: %lf \n\n", state_p->altitude);
+                printf("-------------------------\n\n\n");
                 break;
             }
             default :
