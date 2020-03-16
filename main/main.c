@@ -59,11 +59,11 @@ void app_main(void)
     timer_event tim_evnt = 0;
     QueueHandle_t eventQueue = xQueueCreate(8, sizeof(uint8_t));
 
-    // PID update frequency is 400 Hz i.e. every 2.5 ms
-    register_microtimer_event(PID_UPDATE, 2500, eventQueue);
+    // PID update frequency is 400 Hz i.e. every 2500 mircoseconds
+    //register_microtimer_event(PID_UPDATE, 10000, eventQueue);
     uint64_t last_pid_updated_at = get_micro_timer_ticks_count();
     // TEST event is used to debug only, for sensors and etc
-    register_microtimer_event(TEST_MAIN, 3000000, eventQueue);
+    //register_microtimer_event(TEST_MAIN, 3000000, eventQueue);
 
     while(xQueueReceive(eventQueue, &tim_evnt, portMAX_DELAY) == pdPASS)
     {
