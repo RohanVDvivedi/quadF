@@ -20,6 +20,8 @@ void timer_event_isr(void* param)
 {
     int level = gpio_get_level(BLINK_GPIO);
     gpio_set_level(BLINK_GPIO, 1 - level);
+    uint8_t event_test = 0;
+    xQueueSendFromISR(timer_events_informations[event_test].queue_to_inform_event, &event_test, NULL);
     uint32_t intr_status = TIMERG0.int_st_timers.val;
     TIMERG0.hw_timer[0].update = 1;
     if((intr_status & BIT(0)))
