@@ -15,14 +15,7 @@ struct timer_event_info
 timer_event_info timer_events_informations[MAX_TIMER_EVENTS];
 
 void timer_event_isr(void* param)
-{
-    uint8_t test_event = 0;
-    if(timer_events_informations[test_event].enabled)
-    {
-        xQueueSendFromISR(timer_events_informations[test_event].queue_to_inform_event, &test_event, NULL);
-    }
-    return;
-    
+{    
     uint32_t intr_status = TIMERG0.int_st_timers.val;
     if(intr_status & BIT(0))
     {
@@ -35,7 +28,7 @@ void timer_event_isr(void* param)
                 now_ticks_count = ((uint64_t) TIMERG0.hw_timer[0].cnt_high) << 32 | TIMERG0.hw_timer[0].cnt_low;
                 if(timer_events_informations[i].next_occurence <= now_ticks_count)
                 {
-                    //xQueueSendFromISR(timer_events_informations[i].queue_to_inform_event, &i, NULL);
+                    xQueueSendFromISR(timer_events_informations[i].queue_to_inform_event, &i, NULL);
                     timer_events_informations[i].last_occurence = now_ticks_count;
                     timer_events_informations[i].next_occurence = timer_events_informations[i].last_occurence + timer_events_informations[i].every_x_ticks;
                 }
