@@ -62,7 +62,7 @@ void app_main(void)
     // PID update frequency is 400 Hz i.e. every 2.5 ms
     register_microtimer_event(PID_UPDATE, 2500, eventQueue);
     // TEST event is used to debug only, for sensors and etc
-    register_microtimer_event(TEST, 3000000, eventQueue);
+    register_microtimer_event(TEST_MAIN, 3000000, eventQueue);
 
     while(xQueueReceive(eventQueue, &tim_evnt, portMAX_DELAY) == pdPASS)
     {
@@ -76,7 +76,7 @@ void app_main(void)
                 write_corrections_to_motors(&corr);
                 break;
             }
-            case TEST:
+            case TEST_MAIN:
             {
                 printf("Test\n\n");
                 printf("A: %lf, %lf, %lf \n\n", curr_state_t.accl_data.xi, curr_state_t.accl_data.yj, curr_state_t.accl_data.zk);

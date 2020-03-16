@@ -47,6 +47,8 @@ void sensor_event_loop(void* state_pointer)
     // reading MS5611 every 12000 microseconds
     register_microtimer_event(MS5_READ, 12000, eventQueue);
 
+    register_microtimer_event(TEST_SENSOR, 3000000, eventQueue);
+
     while(xQueueReceive(eventQueue, &tim_evnt, portMAX_DELAY) == pdPASS)
     {
         switch(tim_evnt)
@@ -113,6 +115,11 @@ void sensor_event_loop(void* state_pointer)
                     request_Barodata_temperature();
                 }
                 last_ms5_read_time = get_micro_timer_ticks_count();
+                break;
+            }
+            case TEST_SENSOR :
+            {
+                printf("Test Sensor\n");
                 break;
             }
             default :
