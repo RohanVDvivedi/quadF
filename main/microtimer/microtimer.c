@@ -28,7 +28,7 @@ void timer_event_isr(void* param)
     {
         uint64_t now_ticks_count;
         timer_get_counter_value(TIMER_GROUP_0, TIMER_0, &now_ticks_count);
-        uint64_t minimum_next_occurence_value = (uint64_t)((int64_t)(-1));
+        uint64_t minimum_next_occurence_value = now_ticks_count;
         for(uint8_t i = 0; i < MAX_TIMER_EVENTS; i++)
         {
             if(timer_events_informations[i].enabled)
