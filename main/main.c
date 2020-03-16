@@ -64,16 +64,26 @@ void app_main(void)
 
     while(xQueueReceive(eventQueue, &tim_evnt, portMAX_DELAY) == pdPASS)
     {
-        if(tim_evnt == PID_UPDATE)
+        switch(tim_evnt)
         {
-            state curr_state_t = curr_state;
-            update_channel_state(&chn_state);
-            get_corrections(&corr, &curr_state_t, &chn_state);
-            write_corrections_to_motors(&corr);
-        }
-        else if(tim_evnt == TEST)
-        {
-            printf("Test\n");
+            case PID_UPDATE :
+            {
+                state curr_state_t = curr_state;
+                update_channel_state(&chn_state);
+                get_corrections(&corr, &curr_state_t, &chn_state);
+                write_corrections_to_motors(&corr);
+                break;
+            }
+            case TEST:
+            {
+                printf("Test\n");
+                break;
+            }
+            default :
+            {
+                printf("unrecognized event in main event loop %llu\n");
+                break;
+            }
         }
     }
     vQueueDelete(eventQueue);

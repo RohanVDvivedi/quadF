@@ -49,66 +49,77 @@ void sensor_event_loop(void* state_pointer)
 
     while(xQueueReceive(eventQueue, &tim_evnt, portMAX_DELAY) == pdPASS)
     {
-        // read mpu every 2.5 milliseconds
-        if(tim_evnt == MPU_READ)   // execution time = 780-850 microseconds
+        switch(tim_evnt)
         {
-            // read mpu6050 data, and low pass accl
-            get_scaled_MPUdata(&mpudatasc);
-
-            // after reading mpu data, calculate time delta and update the last read time
-            double time_delta_in_seconds = ((double)(get_micro_timer_ticks_count() - last_mpu_read_time))/1000000;
-            last_mpu_read_time = get_micro_timer_ticks_count();
-
-            state_p->gyro_data = mpudatasc.gyro;
-            state_p->accl_data = mpudatasc.accl;
-
-            // simply use gyro and raw accel to find absolute pitch and roll
-            state_p->abs_roll
-                = (state_p->abs_roll  + mpudatasc.gyro.xi * time_delta_in_seconds) * GYRO_FUSION_FACTOR
-                + ((atan( mpudatasc.accl.yj/mpudatasc.accl.zk) - atan( mpuInit->accl.yj/mpuInit->accl.zk)) * 180 / M_PI) * (1.0 - GYRO_FUSION_FACTOR);
-            state_p->abs_pitch
-                = (state_p->abs_pitch + mpudatasc.gyro.yj * time_delta_in_seconds) * GYRO_FUSION_FACTOR
-                + ((atan(-mpudatasc.accl.xi/mpudatasc.accl.zk) - atan(-mpuInit->accl.xi/mpuInit->accl.zk)) * 180 / M_PI) * (1.0 - GYRO_FUSION_FACTOR);
-        }
-        // read hmc every 13.34 milliseconds
-        else if(tim_evnt == HMC_READ)  // execution time = 470 microseconds
-        {
-            // read hmc5883l data, and low pass magnetometer
-            get_scaled_HMCdata(&hmcdatasc);
-
-            // update last read time
-            last_hmc_read_time = get_micro_timer_ticks_count();
-
-            // update the global state vector
-            state_p->magn_data = hmcdatasc.magn;
-        }
-        // check on ms5611 every 12 milliseconds
-        else if(tim_evnt == MS5_READ)   // execution time = 600-900 microseconds
-        {
-            if(get_current_ms5611_state() == REQUESTED_TEMPERATURE)
+            // read mpu every 2.5 milliseconds
+            case MPU_READ :   // execution time = 780-850 microseconds
             {
-                get_raw_Barodata_temperature();
-                request_Barodata_abspressure();
+                // read mpu6050 data, and low pass accl
+                get_scaled_MPUdata(&mpudatasc);
+
+                // after reading mpu data, calculate time delta and update the last read time
+                double time_delta_in_seconds = ((double)(get_micro_timer_ticks_count() - last_mpu_read_time))/1000000;
+                last_mpu_read_time = get_micro_timer_ticks_count();
+
+                state_p->gyro_data = mpudatasc.gyro;
+                state_p->accl_data = mpudatasc.accl;
+
+                // simply use gyro and raw accel to find absolute pitch and roll
+                state_p->abs_roll
+                    = (state_p->abs_roll  + mpudatasc.gyro.xi * time_delta_in_seconds) * GYRO_FUSION_FACTOR
+                    + ((atan( mpudatasc.accl.yj/mpudatasc.accl.zk) - atan( mpuInit->accl.yj/mpuInit->accl.zk)) * 180 / M_PI) * (1.0 - GYRO_FUSION_FACTOR);
+                state_p->abs_pitch
+                    = (state_p->abs_pitch + mpudatasc.gyro.yj * time_delta_in_seconds) * GYRO_FUSION_FACTOR
+                    + ((atan(-mpudatasc.accl.xi/mpudatasc.accl.zk) - atan(-mpuInit->accl.xi/mpuInit->accl.zk)) * 180 / M_PI) * (1.0 - GYRO_FUSION_FACTOR);
+                break;
             }
-            else if(get_current_ms5611_state() == REQUESTED_PRESSURE)
+            // read hmc every 13.34 milliseconds
+            case HMC_READ :  // execution time = 470 microseconds
             {
-                get_raw_Barodata_abspressure();
+                // read hmc5883l data, and low pass magnetometer
+                get_scaled_HMCdata(&hmcdatasc);
 
-                // once we have got both the raw digital temperature and pressure values we can scale our data
-                scale_and_compensate_Barodata(&bdatasc);
-                if(isnan(state_p->altitude))
+                // update last read time
+                last_hmc_read_time = get_micro_timer_ticks_count();
+
+                // update the global state vector
+                state_p->magn_data = hmcdatasc.magn;
+                break;
+            }
+            // check on ms5611 every 12 milliseconds
+            case MS5_READ :   // execution time = 600-900 microseconds
+            {
+                if(get_current_ms5611_state() == REQUESTED_TEMPERATURE)
                 {
-                    state_p->altitude = bdatasc.altitude;
+                    get_raw_Barodata_temperature();
+                    request_Barodata_abspressure();
                 }
-                state_p->altitude = state_p->altitude * 0.9 + bdatasc.altitude * 0.1;
+                else if(get_current_ms5611_state() == REQUESTED_PRESSURE)
+                {
+                    get_raw_Barodata_abspressure();
 
-                request_Barodata_temperature();
+                    // once we have got both the raw digital temperature and pressure values we can scale our data
+                    scale_and_compensate_Barodata(&bdatasc);
+                    if(isnan(state_p->altitude))
+                    {
+                        state_p->altitude = bdatasc.altitude;
+                    }
+                    state_p->altitude = state_p->altitude * 0.9 + bdatasc.altitude * 0.1;
+
+                    request_Barodata_temperature();
+                }
+                else
+                {
+                    request_Barodata_temperature();
+                }
+                last_ms5_read_time = get_micro_timer_ticks_count();
+                break;
             }
-            else
+            default :
             {
-                request_Barodata_temperature();
+                printf("unrecognized event in sensor event loop %llu\n");
+                break;
             }
-            last_ms5_read_time = get_micro_timer_ticks_count();
         }
     }
     vQueueDelete(eventQueue);
