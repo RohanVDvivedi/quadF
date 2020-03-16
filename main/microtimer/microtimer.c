@@ -14,8 +14,12 @@ struct timer_event_info
 // increase this value by changing this number :p
 timer_event_info timer_events_informations[MAX_TIMER_EVENTS];
 
+#include"driver/gpio.h"
+#define BLINK_GPIO 2
 void timer_event_isr(void* param)
 {
+    int level = gpio_get_level(BLINK_GPIO);
+    gpio_set_level(BLINK_GPIO, 1 - level);
     uint32_t intr_status = TIMERG0.int_st_timers.val;
     TIMERG0.hw_timer[0].update = 1;
     if((intr_status & BIT(0)))

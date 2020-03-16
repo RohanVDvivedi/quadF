@@ -57,7 +57,7 @@ void app_main(void)
     micro_timer_start();
 
     timer_event tim_evnt = 0;
-    QueueHandle_t eventQueue = xQueueCreate(8, sizeof(tim_evnt));
+    QueueHandle_t eventQueue = xQueueCreate(8, sizeof(uint8_t));
 
     //register_microtimer_event(PID_UPDATE, 2500, eventQueue);
     register_microtimer_event(TEST, 1000000, eventQueue);
