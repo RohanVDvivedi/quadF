@@ -93,15 +93,16 @@ void register_microtimer_event(uint8_t timer_event_no, uint64_t every_x_ticks, Q
     timer_events_informations[timer_event_no].next_occurence = now_ticks_count + every_x_ticks;
     timer_events_informations[timer_event_no].enabled = 1;
 
-    uint64_t alarm_value = timer_events_informations[timer_event_no].next_occurence;
+    uint64_t alarm_value;
     timer_get_alarm_value(TIMER_GROUP_0, TIMER_0, &alarm_value);
-    if(alarm_value > timer_events_informations[timer_event_no].next_occurence)
+    if(alarm_value > timer_events_informations[timer_event_no].next_occurence || alarm_value <= now_ticks_count)
     {
         alarm_value = timer_events_informations[timer_event_no].next_occurence;
     }
 
     timer_set_alarm_value(TIMER_GROUP_0, TIMER_0, alarm_value);
     timer_set_alarm(TIMER_GROUP_0, TIMER_0, TIMER_ALARM_EN);
+    printf("%llu, %llu\n", now_ticks_count, alarm_value);
 }
 
 uint64_t get_micro_timer_ticks_count()
