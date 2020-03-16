@@ -117,7 +117,7 @@ void sensor_event_loop(void* state_pointer)
             }
             default :
             {
-                printf("unrecognized event in sensor event loop %llu\n");
+                printf("unrecognized event in sensor event loop %u\n", tim_evnt);
                 break;
             }
         }

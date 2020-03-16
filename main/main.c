@@ -81,7 +81,7 @@ void app_main(void)
             }
             default :
             {
-                printf("unrecognized event in main event loop %llu\n");
+                printf("unrecognized event in main event loop %u\n", tim_evnt);
                 break;
             }
         }
