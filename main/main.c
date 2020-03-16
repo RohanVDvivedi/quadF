@@ -59,8 +59,10 @@ void app_main(void)
     timer_event tim_evnt = 0;
     QueueHandle_t eventQueue = xQueueCreate(8, sizeof(uint8_t));
 
-    //register_microtimer_event(PID_UPDATE, 2500, eventQueue);
-    register_microtimer_event(TEST, 1000000, eventQueue);
+    // PID update frequency is 400 Hz i.e. every 2.5 ms
+    register_microtimer_event(PID_UPDATE, 2500, eventQueue);
+    // TEST event is used to debug only, for sensors and etc
+    register_microtimer_event(TEST, 3000000, eventQueue);
 
     while(xQueueReceive(eventQueue, &tim_evnt, portMAX_DELAY) == pdPASS)
     {
@@ -76,7 +78,13 @@ void app_main(void)
             }
             case TEST:
             {
-                printf("Test\n");
+                printf("Test\n\n");
+                printf("A: %lf, %lf, %lf \n\n", curr_state_t.accl_data.xi, curr_state_t.accl_data.yj, curr_state_t.accl_data.zk);
+                printf("M: %lf, %lf, %lf \n\n", curr_state_t.magn_data.xi, curr_state_t.magn_data.yj, curr_state_t.magn_data.zk);
+                printf("G: %lf, %lf, %lf \n\n", curr_state_t.gyro_data.xi, curr_state_t.gyro_data.yj, curr_state_t.gyro_data.zk);
+                printf("R: %lf \t \t P: %lf \n\n", curr_state_t.abs_roll, curr_state_t.abs_pitch);
+                printf("Alt: %lf \n\n", curr_state_t.altitude);
+                printf("-------------------------\n\n\n", curr_state_t.altitude);
                 break;
             }
             default :
