@@ -4,6 +4,9 @@
 #include"freertos/queue.h"
 #include"sdkconfig.h"
 
+#include "soc/timer_group_struct.h"
+#include "soc/timer_group_reg.h"
+
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
@@ -76,6 +79,14 @@ void app_main(void)
                 update_channel_state(&chn_state);
                 get_corrections(&corr, &curr_state_t, &chn_state);
                 write_corrections_to_motors(&corr);
+
+                // THIS SHIT BELOW MUST NOT BE DONE
+                // BUT I NEED THIS WORKING BADLY, SO DID IT ANYWAY
+                    // feed dog 0
+                    TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
+                    TIMERG0.wdt_feed=1;                       // feed dog
+                    TIMERG0.wdt_wprotect=0;                   // write protect
+
                 break;
             }
             case TEST_MAIN:
