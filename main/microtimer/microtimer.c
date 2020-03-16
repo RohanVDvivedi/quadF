@@ -14,14 +14,8 @@ struct timer_event_info
 // increase this value by changing this number :p
 timer_event_info timer_events_informations[MAX_TIMER_EVENTS];
 
-#include"driver/gpio.h"
-#define BLINK_GPIO 2
 void timer_event_isr(void* param)
 {
-    int level = gpio_get_level(BLINK_GPIO);
-    gpio_set_level(BLINK_GPIO, 1 - level);
-    uint8_t event_test = 0;
-    xQueueSendFromISR(timer_events_informations[event_test].queue_to_inform_event, &event_test, NULL);
     uint32_t intr_status = TIMERG0.int_st_timers.val;
     if((intr_status & BIT(0)))
     {
@@ -69,6 +63,7 @@ void micro_timer_init()
     	conf.counter_dir = TIMER_COUNT_UP;
     	conf.divider = 80;
         conf.auto_reload = 0;
+        conf.intr_type = TIMER_INTR_LEVEL;
     	timer_init(TIMER_GROUP_0, TIMER_0, &conf);
         timer_set_counter_value(TIMER_GROUP_0, TIMER_0, 0x00000000ULL);
     }
