@@ -26,14 +26,13 @@ void timer_event_isr(void* param)
     uint32_t intr_status = TIMERG0.int_st_timers.val;
     if(intr_status & BIT(0))
     {
-        uint64_t now_ticks_count;
-        timer_get_counter_value(TIMER_GROUP_0, TIMER_0, &now_ticks_count);
+        uint64_t now_ticks_count = ((uint64_t) TIMERG0.hw_timer[0].cnt_high) << 32 | TIMERG0.hw_timer[0].cnt_low;
         uint64_t minimum_next_occurence_value = now_ticks_count;
         for(uint8_t i = 0; i < MAX_TIMER_EVENTS; i++)
         {
             if(timer_events_informations[i].enabled)
             {
-                timer_get_counter_value(TIMER_GROUP_0, TIMER_0, &now_ticks_count);
+                now_ticks_count = ((uint64_t) TIMERG0.hw_timer[0].cnt_high) << 32 | TIMERG0.hw_timer[0].cnt_low;
                 if(timer_events_informations[i].next_occurence <= now_ticks_count)
                 {
                     //xQueueSendFromISR(timer_events_informations[i].queue_to_inform_event, &i, NULL);
@@ -47,8 +46,9 @@ void timer_event_isr(void* param)
             }
         }
         TIMERG0.int_clr_timers.t0 = 1;
-        timer_set_alarm_value(TIMER_GROUP_0, TIMER_0, minimum_next_occurence_value);
-        timer_set_alarm(TIMER_GROUP_0, TIMER_0, TIMER_ALARM_EN);
+        TIMERG0.hw_timer[0].alarm_high = (uint32_t) (minimum_next_occurence_value >> 32);
+        TIMERG0.hw_timer[0].alarm_low = (uint32_t) minimum_next_occurence_value;
+        TIMERG0.hw_timer[0].config.alarm_en = TIMER_ALARM_EN;
     }
 }
 
@@ -66,8 +66,8 @@ void micro_timer_init()
 
 		// setup a timer
     	timer_config_t conf;
-    	conf.counter_en = false;
-        conf.alarm_en = true;
+    	conf.counter_en = TIMER_PAUSE;
+        conf.alarm_en = TIMER_ALARM_DIS;
     	conf.counter_dir = TIMER_COUNT_UP;
     	conf.divider = 80;
         conf.auto_reload = 0;
