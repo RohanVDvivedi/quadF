@@ -23,7 +23,6 @@ void timer_event_isr(void* param)
     uint8_t event_test = 0;
     xQueueSendFromISR(timer_events_informations[event_test].queue_to_inform_event, &event_test, NULL);
     uint32_t intr_status = TIMERG0.int_st_timers.val;
-    TIMERG0.hw_timer[0].update = 1;
     if((intr_status & BIT(0)))
     {
         uint64_t now_ticks_count;
@@ -69,6 +68,7 @@ void micro_timer_init()
     	conf.counter_en = true;
     	conf.counter_dir = TIMER_COUNT_UP;
     	conf.divider = 80;
+        conf.auto_reload = 0;
     	timer_init(TIMER_GROUP_0, TIMER_0, &conf);
         timer_set_counter_value(TIMER_GROUP_0, TIMER_0, 0x00000000ULL);
     }
@@ -83,8 +83,8 @@ void micro_timer_start()
         microtimer_is_already_running = 1;
 
         // set interrupt and start the timer, the interrupt goes off, if and only if alarm is set
-        timer_enable_intr(TIMER_GROUP_0, TIMER_0);
         timer_isr_register(TIMER_GROUP_0, TIMER_0, timer_event_isr, NULL, 0, NULL);
+        timer_enable_intr(TIMER_GROUP_0, TIMER_0);
         timer_start(TIMER_GROUP_0, TIMER_0);
     }
 }
@@ -109,6 +109,7 @@ void register_microtimer_event(uint8_t timer_event_no, uint64_t every_x_ticks, Q
     timer_set_alarm_value(TIMER_GROUP_0, TIMER_0, alarm_value);
     timer_set_alarm(TIMER_GROUP_0, TIMER_0, TIMER_ALARM_EN);
     xQueueSend(timer_events_informations[timer_event_no].queue_to_inform_event, &timer_event_no, 0);
+    printf("%llu %llu\n", now_ticks_count, get_micro_timer_ticks_count());
 }
 
 uint64_t get_micro_timer_ticks_count()
