@@ -20,7 +20,7 @@ void timer_event_isr(void* param)
     if(intr_status & BIT(0))
     {
         uint64_t now_ticks_count = ((uint64_t) TIMERG0.hw_timer[0].cnt_high) << 32 | TIMERG0.hw_timer[0].cnt_low;
-        uint64_t minimum_next_occurence_value = now_ticks_count;
+        uint64_t minimum_next_occurence_value = now_ticks_count + 10000;
         for(uint8_t i = 0; i < MAX_TIMER_EVENTS; i++)
         {
             if(timer_events_informations[i].enabled)
@@ -32,7 +32,7 @@ void timer_event_isr(void* param)
                     timer_events_informations[i].last_occurence = now_ticks_count;
                     timer_events_informations[i].next_occurence = timer_events_informations[i].last_occurence + timer_events_informations[i].every_x_ticks;
                 }
-                if(timer_events_informations[i].next_occurence < minimum_next_occurence_value)
+                if(timer_events_informations[i].next_occurence < minimum_next_occurence_value || minimum_next_occurence_value <= now_ticks_count)
                 {
                     minimum_next_occurence_value = timer_events_informations[i].next_occurence;
                 }
