@@ -73,7 +73,7 @@ void micro_timer_init()
         conf.auto_reload = 0;
         conf.intr_type = TIMER_INTR_LEVEL;
     	timer_init(TIMER_GROUP_0, TIMER_0, &conf);
-        timer_set_counter_value(TIMER_GROUP_0, TIMER_0, 0x00000000ULL);
+        timer_set_counter_value(TIMER_GROUP_0, TIMER_0, 0);
     }
 }
 
