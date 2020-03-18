@@ -45,10 +45,12 @@ void sensor_loop(void* state_pointer)
 
     while(1)
     {
+        vTaskDelay(1 / portTICK_PERIOD_MS);
+
         now_time = get_micro_timer_ticks_count();
 
         // read mpu every millisecond
-        if(now_time - last_mpu_read_time >= 1000)
+        if(now_time - last_mpu_read_time >= 2500)
         {
             // read mpu6050 data, and low pass accl
             get_scaled_MPUdata(&mpudatasc);

@@ -3,6 +3,9 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 
+#include "soc/timer_group_struct.h"
+#include "soc/timer_group_reg.h"
+
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
@@ -57,7 +60,20 @@ void app_main(void)
 
     do
     {
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        gpio_set_level(BLINK_GPIO, 1);
+        // THIS SHIT BELOW MUST NOT BE DONE
+                // BUT I NEED THIS WORKING BADLY, SO DID IT ANYWAY
+                    // feed watchdog timer 0
+                    TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
+                    TIMERG0.wdt_feed=1;
+                    TIMERG0.wdt_wprotect=0;
+                    // feed watchdog timer 1
+                    TIMERG1.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
+                    TIMERG1.wdt_feed=1;
+                    TIMERG1.wdt_wprotect=0;
+
+        vTaskDelay(2 / portTICK_PERIOD_MS);
+        gpio_set_level(BLINK_GPIO, 0);
 
         // read current sensor states
         state curr_state_t = curr_state;
