@@ -80,7 +80,7 @@ void app_main(void)
         //printf("A: %lf, %lf, %lf\n", curr_state_t.acceleration_local.xi, curr_state_t.acceleration_local.yj, curr_state_t.acceleration_local.zk);
         //printf("M: %lf, %lf, %lf => %lf\n", curr_state_t.magnetic_heading_local.xi, curr_state_t.magnetic_heading_local.yj, curr_state_t.magnetic_heading_local.zk);
         //printf("G: %lf, %lf, %lf\n", curr_state_t.angular_velocity_local.xi, curr_state_t.angular_velocity_local.yj, curr_state_t.angular_velocity_local.zk);
-        printf("Alt: %lf\n", curr_state_t.altitude);
+        //printf("Alt: %lf\n", curr_state_t.altitude);
         //printf("%lf \t %lf \t %lf \t\t %lf\n\n", quat_r.vectr.xi, quat_r.vectr.yj, quat_r.vectr.zk, quat_r.theta);
         //printf("R: %lf %lf \t \t P: %lf %lf\n", curr_state_t.abs_roll[0], curr_state_t.abs_roll[1], curr_state_t.abs_pitch[0], curr_state_t.abs_pitch[1]);
     }
