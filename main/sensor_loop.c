@@ -118,7 +118,7 @@ void sensor_loop(void* state_pointer)
 
                 // once we have got both the raw digital temperature and pressure values we can scale our data
                 scale_and_compensate_Barodata(&bdatasc);
-                if(isnan(state_p->altitude))
+                if(isnan(state_p->altitude) || state_p->altitude == 0.0)
                 {
                     state_p->altitude = bdatasc.altitude;
                 }
