@@ -8,7 +8,7 @@
 #include "driver/mcpwm.h"
 #include "soc/mcpwm_periph.h"
 
-// un comment the below line to set up motor ans esc input ranges fot this flight controller
+// un comment the below line to set up esc input ranges for this flight controller
 //#define MOTOR_RANGE_SETUP
 
 // motor pins

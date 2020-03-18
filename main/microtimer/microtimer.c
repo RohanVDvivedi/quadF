@@ -13,14 +13,14 @@ void micro_timer_init()
     	conf.counter_en = true;
     	conf.counter_dir = TIMER_COUNT_UP;
     	conf.divider = 80;
-    	timer_init(TIMER_GROUP_0, 0, &conf);
-    	timer_start(TIMER_GROUP_0, 0);
+    	timer_init(TIMER_GROUP_0, TIMER_0, &conf);
+    	timer_start(TIMER_GROUP_0, TIMER_0);
     }
 }
 
 uint64_t get_micro_timer_ticks_count()
 {
 	uint64_t now_ticks;
-    timer_get_counter_value(TIMER_GROUP_0, 0, &now_ticks);
+    timer_get_counter_value(TIMER_GROUP_0, TIMER_0, &now_ticks);
     return now_ticks;
 }

@@ -16,6 +16,6 @@
 //#define ORIENTATION_ONLY_ACCL_MAGN
 //#define ORIENTATION_ONLY_GYRO
 
-void sensor_loop(void* not_required);
+void sensor_loop(void* curr_state);
 
 #endif
